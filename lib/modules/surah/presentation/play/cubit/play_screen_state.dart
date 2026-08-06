@@ -4,3 +4,12 @@ part of 'play_screen_cubit.dart';
 sealed class PlayScreenState {}
 
 final class PlayScreenInitialState extends PlayScreenState {}
+
+final class PlayScreenPlayingState extends PlayScreenState {}
+
+final class PlayScreenLoadingState extends PlayScreenState {}
+
+final class PlayScreenFailureState extends PlayScreenState {
+  final Failure failure;
+  PlayScreenFailureState(this.failure);
+}

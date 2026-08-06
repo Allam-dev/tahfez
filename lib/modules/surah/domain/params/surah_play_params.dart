@@ -30,6 +30,8 @@ class SurahPlayParams {
 
   bool get sameSurah => startSurahNumber == endSurahNumber;
 
+  
+
   int get ayaRepeatCount => _ayaRepeatCount;
   int get sectionRepeatCount => _sectionRepeatCount;
 

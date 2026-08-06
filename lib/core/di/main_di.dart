@@ -4,8 +4,8 @@ import 'package:tahfez/core/services/download_manager/download_manager_dio_imp.d
 import 'package:tahfez/core/services/token/token_handler.dart';
 import 'package:tahfez/core/services/token/token_handler_impl.dart';
 import 'package:tahfez/modules/reader/data/repos/reader_repo_impl.dart';
-import 'package:tahfez/modules/surah/data/repos/surah_repo_impl.dart';
-import 'package:tahfez/modules/surah/domain/surah_repo.dart';
+import 'package:tahfez/modules/surah/data/repos/surah_player_just_audio_impl.dart';
+import 'package:tahfez/modules/surah/domain/surah_player.dart';
 import 'package:tahfez/modules/reader/domain/reader_repo.dart';
 
 final getIt = GetIt.instance;
@@ -15,7 +15,7 @@ void initDI() {
 
   getIt.registerLazySingleton<DownloadManager>(() => DownloadManagerDioImp());
 
-  getIt.registerFactory<SurahRepo>(() => SurahRepoImpl.instance);
+  getIt.registerFactory<SurahPlayer>(() => SurahPlayerJustAudioImpl.instance);
 
   getIt.registerFactory<ReaderRepo>(() => ReaderRepoImpl());
 }

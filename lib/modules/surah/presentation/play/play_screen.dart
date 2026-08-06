@@ -22,6 +22,7 @@ class PlayScreen extends StatelessWidget {
           return Scaffold(
             appBar: AppBar(),
             body: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
               spacing: 30.h,
               children: [
                 // readers dropdown
@@ -35,10 +36,7 @@ class PlayScreen extends StatelessWidget {
                 // aya repeat count and section repeat count
                 SurahRepeatCounterWidget(),
                 // play button
-                ElevatedButton(
-                  onPressed: playScreenCubit.play,
-                  child: Text(LocaleKeys.play),
-                ),
+                
               ],
             ),
           );

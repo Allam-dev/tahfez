@@ -1,32 +1,49 @@
-import 'package:fpdart/src/either.dart';
+import 'dart:async';
 import 'package:just_audio/just_audio.dart';
-import 'package:tahfez/core/error/failure.dart';
 import 'package:tahfez/modules/surah/data/data_sources/api/surah_api.dart';
+import 'package:tahfez/modules/surah/domain/enums/surah_player_state.dart';
 import 'package:tahfez/modules/surah/domain/models/aya_timing_model.dart';
 import 'package:tahfez/modules/surah/domain/params/surah_play_params.dart';
-import '../../domain/surah_repo.dart';
+import '../../domain/surah_player.dart';
 
-class SurahRepoImpl implements SurahRepo {
-  SurahRepoImpl._();
-  static SurahRepoImpl instance = SurahRepoImpl._();
+class SurahPlayerJustAudioImpl implements SurahPlayer {
+  SurahPlayerJustAudioImpl._() {
+    _playingSubscription = _player.playerStateStream.listen((state) {
+      switch (state.processingState) {
+        case ProcessingState.idle:
+          _stateController.add(SurahPlayerState.idel);
+          break;
+        case ProcessingState.loading:
+          _stateController.add(SurahPlayerState.loading);
+          break;
+        case ProcessingState.buffering:
+          _stateController.add(SurahPlayerState.loading);
+          break;
+        case ProcessingState.ready:
+          if (state.playing) {
+            _stateController.add(SurahPlayerState.play);
+          } else {
+            _stateController.add(SurahPlayerState.pause);
+          }
+          break;
+        case ProcessingState.completed:
+          _stateController.add(SurahPlayerState.idel);
+          break;
+      }
+    });
+  }
+  
+  static SurahPlayerJustAudioImpl instance = SurahPlayerJustAudioImpl._();
+  late final StreamSubscription<PlayerState> _playingSubscription;
   final AudioPlayer _player = AudioPlayer();
-
+  final StreamController<SurahPlayerState> _stateController =
+      StreamController<SurahPlayerState>.broadcast();
   final SurahAPI _api = SurahAPI();
 
   @override
-  Future<void> downloadSur(int readerId) {
-    // TODO: implement downloadSur
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> downloadSurah(int surahId, int readerId) {
-    // TODO: implement downloadSurah
-    throw UnimplementedError();
-  }
-
-  @override
   Future<void> play(SurahPlayParams params) async {
+    _stateController.add(SurahPlayerState.loading);
+    await _player.stop();
     final List<AudioSource> sources = await _generateSectionAudioSources(
       params,
     );
@@ -146,4 +163,20 @@ class SurahRepoImpl implements SurahRepo {
     }
     return sources;
   }
+
+  @override
+  Future<void> pause() => _player.pause();
+
+  @override
+  Future<void> stop() => _player.stop();
+
+  @override
+  Future<void> dispose() async {
+    await _player.dispose();
+    await _playingSubscription.cancel();
+    await _stateController.close();
+  }
+
+  @override
+  Stream<SurahPlayerState> get state => _stateController.stream;
 }

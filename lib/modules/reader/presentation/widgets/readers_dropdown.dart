@@ -62,6 +62,8 @@ class _ReadersDropdownState extends State<ReadersDropdown> {
               );
             }
             return DropdownMenu<ReaderModel>(
+              enableFilter: true,
+              requestFocusOnTap: true,
               label: Text(context.tr(LocaleKeys.selectReader)),
               dropdownMenuEntries: list
                   .map(
