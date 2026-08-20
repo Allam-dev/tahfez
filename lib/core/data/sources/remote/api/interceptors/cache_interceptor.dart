@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:hive/hive.dart';
 import 'package:tahfez/core/data/sources/local/hive/hive_helper.dart';
@@ -12,26 +14,34 @@ class CacheInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     if (options.method == 'GET') {
-      final bool isReload = options.extra['reload'];
+      final bool isReload = options.extra['reload'] == true;
       final key = _keyFor(options);
-      final cached = box.get(key);
-      if (cached != null && !isReload) {
-        final response = Response(
-          requestOptions: options,
-          data: cached['data'],
-          statusCode: cached['statusCode'],
-        );
-        return handler.resolve(response);
+      if (!isReload) {
+        final cached = box.get(key);
+        if (cached != null) {
+          final response = Response(
+            requestOptions: options,
+            data: jsonDecode(cached['data']),
+            statusCode: cached['statusCode'],
+          );
+          return handler.resolve(response);
+        }
       }
     }
     return handler.next(options);
   }
 
   @override
-  void onResponse(Response response, ResponseInterceptorHandler handler) {
+  Future<void> onResponse(
+    Response response,
+    ResponseInterceptorHandler handler,
+  ) async {
     if (response.requestOptions.method == 'GET' && response.statusCode == 200) {
       final key = _keyFor(response.requestOptions);
-      box.put(key, {'data': response.data, 'statusCode': response.statusCode});
+      await box.put(key, {
+        'data': jsonEncode(response.data),
+        'statusCode': response.statusCode,
+      });
     }
     return handler.next(response);
   }
@@ -44,7 +54,7 @@ class CacheInterceptor extends Interceptor {
       if (cached != null) {
         final response = Response(
           requestOptions: err.requestOptions,
-          data: cached['data'],
+          data: jsonDecode(cached['data']),
           statusCode: cached['statusCode'],
         );
         return handler.resolve(response);

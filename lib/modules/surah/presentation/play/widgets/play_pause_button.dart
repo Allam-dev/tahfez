@@ -1,6 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:tahfez/modules/surah/presentation/play/cubit/play_screen_cubit.dart';
+part of '../play_screen.dart';
 
 class PlayPauseButton extends StatelessWidget {
   const PlayPauseButton({super.key});
@@ -9,17 +7,34 @@ class PlayPauseButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final PlayScreenCubit playScreenCubit = context.read<PlayScreenCubit>();
     return BlocBuilder<PlayScreenCubit, PlayScreenState>(
+      buildWhen: (previous, current) => current != previous,
       builder: (context, state) {
-        if (state is PlayScreenPlayingState) {
+        if (state is PlayScreenLoadingState) {
+          return ElevatedButton(
+            onPressed: () {},
+            child: const CircularProgressIndicator(color: AppColors.teal50),
+          );
+        } else if (state is PlayScreenPlayingState ||
+            state is PlayScreenPauseState) {
           return Row(
             children: [
-              ElevatedButton(
-                onPressed: playScreenCubit.pause,
-                child: const Icon(Icons.pause),
+              Expanded(
+                child: state is PlayScreenPlayingState
+                    ? ElevatedButton(
+                        onPressed: playScreenCubit.pause,
+                        child: const Icon(Icons.pause),
+                      )
+                    : ElevatedButton(
+                        onPressed: playScreenCubit.resume,
+                        child: const Icon(Icons.play_arrow),
+                      ),
               ),
-              ElevatedButton(
-                onPressed: playScreenCubit.stop,
-                child: const Icon(Icons.stop),
+              16.horizontalSpace,
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: playScreenCubit.stop,
+                  child: const Icon(Icons.stop),
+                ),
               ),
             ],
           );

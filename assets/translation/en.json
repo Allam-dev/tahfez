@@ -13,6 +13,7 @@
   "noData": "No Data",
   "noInternetConnection": "No internet connection",
   "loading": "Loading",
+  "downloads":"Downloads",
   "noReadersFound":"No readers found",
   "switchCamera": "Switch Camera",
   "send": "Send",
@@ -461,5 +462,12 @@
   "ssn": "SSN",
   "id": "ID",
   "repeatAyaTimes": "Repeat Ayah Times",
-  "repeatSectionTimes": "Repeat Section Times"
+  "repeatSectionTimes": "Repeat Section Times",
+  "downloadAll": "Download All",
+  "downloading": "Downloading",
+  "completed": "Completed",
+  "deleteReaderConfirm": "Are you sure you want to delete all downloaded recitations for this reader?",
+  "downloadSurah": "Download Surah",
+  "fullQuranDownloading": "Full Quran download in progress",
+  "donation": "Donation"
 }

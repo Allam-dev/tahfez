@@ -20,6 +20,7 @@ abstract class  LocaleKeys {
   static const loading = 'loading';
   static const noReadersFound = 'noReadersFound';
   static const selectReader = 'selectReader';
+  static const downloads = 'downloads';
   static const switchCamera = 'switchCamera';
   static const send = 'send';
   static const play = 'play';
@@ -466,5 +467,12 @@ abstract class  LocaleKeys {
   static const banned = 'banned';
   static const repeatAyaTimes = 'repeatAyaTimes';
   static const repeatSectionTimes = 'repeatSectionTimes';
+  static const downloadAll = 'downloadAll';
+  static const downloading = 'downloading';
+  static const completed = 'completed';
+  static const deleteReaderConfirm = 'deleteReaderConfirm';
+  static const downloadSurah = 'downloadSurah';
+  static const fullQuranDownloading = 'fullQuranDownloading';
+  static const donation = 'donation';
 
 }

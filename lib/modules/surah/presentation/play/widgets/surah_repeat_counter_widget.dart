@@ -1,8 +1,4 @@
-import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:tahfez/app/localization/locale_keys.g.dart';
-import 'package:tahfez/modules/surah/presentation/play/cubit/play_screen_cubit.dart';
+part of '../play_screen.dart';
 
 class SurahRepeatCounterWidget extends StatefulWidget {
   const SurahRepeatCounterWidget({super.key});
@@ -15,8 +11,9 @@ class SurahRepeatCounterWidget extends StatefulWidget {
 class _SurahRepeatCounterWidgetState extends State<SurahRepeatCounterWidget> {
   @override
   Widget build(BuildContext context) {
-    final playScreenCubit = context.read<PlayScreenCubit>();
+    final playScreenBloc = context.read<PlayScreenCubit>();
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         Column(
           children: [
@@ -26,16 +23,16 @@ class _SurahRepeatCounterWidgetState extends State<SurahRepeatCounterWidget> {
                 IconButton(
                   onPressed: () {
                     setState(() {
-                      playScreenCubit.playParams.ayaRepeatCount--;
+                      playScreenBloc.playParams.ayaRepeatCount--;
                     });
                   },
                   icon: const Icon(Icons.remove),
                 ),
-                Text(playScreenCubit.playParams.ayaRepeatCount.toString()),
+                Text(playScreenBloc.playParams.ayaRepeatCount.toString()),
                 IconButton(
                   onPressed: () {
                     setState(() {
-                      playScreenCubit.playParams.ayaRepeatCount++;
+                      playScreenBloc.playParams.ayaRepeatCount++;
                     });
                   },
                   icon: const Icon(Icons.add),
@@ -52,16 +49,16 @@ class _SurahRepeatCounterWidgetState extends State<SurahRepeatCounterWidget> {
                 IconButton(
                   onPressed: () {
                     setState(() {
-                      playScreenCubit.playParams.sectionRepeatCount--;
+                      playScreenBloc.playParams.sectionRepeatCount--;
                     });
                   },
                   icon: const Icon(Icons.remove),
                 ),
-                Text(playScreenCubit.playParams.sectionRepeatCount.toString()),
+                Text(playScreenBloc.playParams.sectionRepeatCount.toString()),
                 IconButton(
                   onPressed: () {
                     setState(() {
-                      playScreenCubit.playParams.sectionRepeatCount++;
+                      playScreenBloc.playParams.sectionRepeatCount++;
                     });
                   },
                   icon: const Icon(Icons.add),

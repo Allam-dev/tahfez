@@ -1,0 +1,13 @@
+tahfez:
+
+make helpers for audioService and FileDownloader to initilize them in clean way like Dio
+
+make playing smother by prepare 2 or 3 farther records and play from donwloaded first
+
+when download any surah we must make a success request to get its timing and it will be autmaticly cached
+
+change theme and language options
+
+social links for me, source code link, share button
+
+change app name and icon	

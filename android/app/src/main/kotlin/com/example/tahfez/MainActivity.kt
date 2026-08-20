@@ -1,4 +1,4 @@
-package com.example.tahfez
+package tahfez.allam.labs
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -1,3 +1,4 @@
+import 'package:tahfez/app/localization/localization_constants.dart';
 import 'package:tahfez/app/style/theme/dark_theme.dart';
 import 'package:tahfez/app/style/theme/light_theme.dart';
 import 'package:tahfez/app/style/theme/theme_cubit.dart';

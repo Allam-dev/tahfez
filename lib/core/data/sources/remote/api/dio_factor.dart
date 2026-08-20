@@ -29,8 +29,8 @@ class DioFactory {
       ),
     );
     _dio!.interceptors.addAll([
-      PrettyDioLogger(requestBody: true, requestHeader: true),
       CacheInterceptor(),
+      PrettyDioLogger(requestBody: true, requestHeader: true),
       // AuthInterceptor(tokenHandler),
     ]);
   }
