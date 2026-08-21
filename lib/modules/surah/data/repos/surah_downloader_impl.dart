@@ -112,7 +112,7 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
       );
       _onDownloadFinished(readerId, surahNumber, update.task.taskId);
     } else if (update.status == TaskStatus.failed ||
-        update.status == TaskStatus.notFound) {
+        update.status == TaskStatus.notFound || update.status == TaskStatus.canceled) {
       _progressController.add(
         SurahDownloadProgress(
           readerId: readerId,

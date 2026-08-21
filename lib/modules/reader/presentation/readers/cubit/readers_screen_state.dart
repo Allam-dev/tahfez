@@ -3,9 +3,9 @@ part of 'readers_screen_cubit.dart';
 @immutable
 sealed class ReadersScreenState {}
 
-final class ReadersScreenLoading extends ReadersScreenState {}
+final class ReadersScreenLoadingState extends ReadersScreenState {}
 
-final class ReadersScreenLoaded extends ReadersScreenState {
+final class ReadersScreenLoadedState extends ReadersScreenState {
   final List<ReaderModel> readers;
 
   /// readerId → number of downloaded surahs (0–114)
@@ -14,18 +14,18 @@ final class ReadersScreenLoaded extends ReadersScreenState {
   /// readerId → { surahNumber → progress 0.0–1.0 }
   final Map<int, Map<int, double>> activeProgress;
 
-  ReadersScreenLoaded({
+  ReadersScreenLoadedState({
     required this.readers,
     required this.downloadedCounts,
     required this.activeProgress,
   });
 
-  ReadersScreenLoaded copyWith({
+  ReadersScreenLoadedState copyWith({
     List<ReaderModel>? readers,
     Map<int, int>? downloadedCounts,
     Map<int, Map<int, double>>? activeProgress,
   }) {
-    return ReadersScreenLoaded(
+    return ReadersScreenLoadedState(
       readers: readers ?? this.readers,
       downloadedCounts: downloadedCounts ?? this.downloadedCounts,
       activeProgress: activeProgress ?? this.activeProgress,
@@ -46,8 +46,8 @@ final class ReadersScreenLoaded extends ReadersScreenState {
   }
 }
 
-final class ReadersScreenError extends ReadersScreenState {
+final class ReadersScreenFailureState extends ReadersScreenState {
   final Failure failure;
 
-  ReadersScreenError(this.failure);
+  ReadersScreenFailureState(this.failure);
 }

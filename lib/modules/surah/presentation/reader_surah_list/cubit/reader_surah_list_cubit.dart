@@ -17,8 +17,8 @@ class ReaderSurahListCubit extends Cubit<ReaderSurahListState> {
   ReaderSurahListCubit({
     required this.reader,
     required SurahDownloader surahDownloader,
-  })  : _downloader = surahDownloader,
-        super(ReaderSurahListLoading()) {
+  }) : _downloader = surahDownloader,
+       super(ReaderSurahListLoadingState()) {
     _init();
   }
 
@@ -26,17 +26,19 @@ class ReaderSurahListCubit extends Cubit<ReaderSurahListState> {
     final downloaded = await _downloader.getDownloadedSurahs(reader);
     final progressMap = <int, double>{};
 
-    emit(ReaderSurahListLoaded(
-      downloadedSurahs: downloaded,
-      activeProgress: progressMap,
-      isFullQuranDownloading: _downloader.isFullQuranDownloading(reader.id),
-    ));
+    emit(
+      ReaderSurahListLoadedState(
+        downloadedSurahs: downloaded,
+        activeProgress: progressMap,
+        isFullQuranDownloading: _downloader.isFullQuranDownloading(reader.id),
+      ),
+    );
 
     _progressSub = _downloader.downloadProgress.listen((event) {
       if (event.readerId != reader.id) return;
 
       final currentState = state;
-      if (currentState is! ReaderSurahListLoaded) return;
+      if (currentState is! ReaderSurahListLoadedState) return;
 
       final newDownloaded = Set<int>.from(currentState.downloadedSurahs);
       final newProgress = Map<int, double>.from(currentState.activeProgress);
@@ -54,12 +56,13 @@ class ReaderSurahListCubit extends Cubit<ReaderSurahListState> {
           break;
       }
 
-      emit(ReaderSurahListLoaded(
-        downloadedSurahs: newDownloaded,
-        activeProgress: newProgress,
-        isFullQuranDownloading:
-            _downloader.isFullQuranDownloading(reader.id),
-      ));
+      emit(
+        ReaderSurahListLoadedState(
+          downloadedSurahs: newDownloaded,
+          activeProgress: newProgress,
+          isFullQuranDownloading: _downloader.isFullQuranDownloading(reader.id),
+        ),
+      );
     });
   }
 
@@ -71,14 +74,16 @@ class ReaderSurahListCubit extends Cubit<ReaderSurahListState> {
     await _downloader.deleteSurah(reader, surahNumber);
 
     final currentState = state;
-    if (currentState is ReaderSurahListLoaded) {
+    if (currentState is ReaderSurahListLoadedState) {
       final newDownloaded = Set<int>.from(currentState.downloadedSurahs)
         ..remove(surahNumber);
-      emit(ReaderSurahListLoaded(
-        downloadedSurahs: newDownloaded,
-        activeProgress: Map.from(currentState.activeProgress),
-        isFullQuranDownloading: currentState.isFullQuranDownloading,
-      ));
+      emit(
+        ReaderSurahListLoadedState(
+          downloadedSurahs: newDownloaded,
+          activeProgress: Map.from(currentState.activeProgress),
+          isFullQuranDownloading: currentState.isFullQuranDownloading,
+        ),
+      );
     }
   }
 

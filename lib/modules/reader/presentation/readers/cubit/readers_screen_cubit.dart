@@ -26,17 +26,16 @@ class ReadersScreenCubit extends Cubit<ReadersScreenState> {
   ReadersScreenCubit({
     required ReaderRepo readerRepo,
     required SurahDownloader surahDownloader,
-  })  : _readerRepo = readerRepo,
-        _surahDownloader = surahDownloader,
-        super(ReadersScreenLoading()) {
+  }) : _readerRepo = readerRepo,
+       _surahDownloader = surahDownloader,
+       super(ReadersScreenLoadingState()) {
     _listenToProgress();
     loadReaders();
   }
 
   void _listenToProgress() {
     _progressSub = _surahDownloader.downloadProgress.listen((event) {
-      final readerProgress =
-          _activeProgress[event.readerId] ?? {};
+      final readerProgress = _activeProgress[event.readerId] ?? {};
 
       switch (event.status) {
         case SurahDownloadStatus.downloading:
@@ -58,32 +57,35 @@ class ReadersScreenCubit extends Cubit<ReadersScreenState> {
 
       // Re-emit the loaded state with updated progress
       final currentState = state;
-      if (currentState is ReadersScreenLoaded) {
-        emit(currentState.copyWith(
-          downloadedCounts: Map.from(_downloadedCounts),
-          activeProgress: Map.from(_activeProgress),
-        ));
+      if (currentState is ReadersScreenLoadedState) {
+        emit(
+          currentState.copyWith(
+            downloadedCounts: Map.from(_downloadedCounts),
+            activeProgress: Map.from(_activeProgress),
+          ),
+        );
       }
     });
   }
 
   Future<void> loadReaders() async {
-    emit(ReadersScreenLoading());
+    emit(ReadersScreenLoadingState());
     final result = await _readerRepo.getList();
     await result.fold(
-      (failure) async => emit(ReadersScreenError(failure)),
+      (failure) async => emit(ReadersScreenFailureState(failure)),
       (readers) async {
         // Pre-load downloaded counts for each reader
         for (final reader in readers) {
-          final downloaded =
-              await _surahDownloader.getDownloadedSurahs(reader);
+          final downloaded = await _surahDownloader.getDownloadedSurahs(reader);
           _downloadedCounts[reader.id] = downloaded.length;
         }
-        emit(ReadersScreenLoaded(
-          readers: readers,
-          downloadedCounts: Map.from(_downloadedCounts),
-          activeProgress: Map.from(_activeProgress),
-        ));
+        emit(
+          ReadersScreenLoadedState(
+            readers: readers,
+            downloadedCounts: Map.from(_downloadedCounts),
+            activeProgress: Map.from(_activeProgress),
+          ),
+        );
       },
     );
   }
@@ -98,11 +100,13 @@ class ReadersScreenCubit extends Cubit<ReadersScreenState> {
     _activeProgress.remove(reader.id);
 
     final currentState = state;
-    if (currentState is ReadersScreenLoaded) {
-      emit(currentState.copyWith(
-        downloadedCounts: Map.from(_downloadedCounts),
-        activeProgress: Map.from(_activeProgress),
-      ));
+    if (currentState is ReadersScreenLoadedState) {
+      emit(
+        currentState.copyWith(
+          downloadedCounts: Map.from(_downloadedCounts),
+          activeProgress: Map.from(_activeProgress),
+        ),
+      );
     }
   }
 
