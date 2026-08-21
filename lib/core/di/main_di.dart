@@ -1,4 +1,3 @@
-import 'package:audio_service/audio_service.dart';
 import 'package:get_it/get_it.dart';
 import 'package:tahfez/core/services/download_manager/download_manager.dart';
 import 'package:tahfez/core/services/download_manager/download_manager_dio_imp.dart';

@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:tahfez/app/localization/locale_keys.g.dart';
 import 'package:tahfez/core/di/main_di.dart';
 import 'package:tahfez/modules/reader/domain/models/reader_model.dart';
@@ -62,6 +63,8 @@ class _ReadersDropdownState extends State<ReadersDropdown> {
               );
             }
             return DropdownMenu<ReaderModel>(
+              menuHeight: 300.h,
+
               expandedInsets: EdgeInsets.zero,
               enableFilter: true,
               requestFocusOnTap: true,

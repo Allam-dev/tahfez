@@ -21,6 +21,8 @@ class _SurahDropdownState extends State<SurahDropdown> {
             // from
             Expanded(
               child: DropdownMenu<int>(
+                menuHeight: 300.h,
+
                 expandedInsets: EdgeInsets.zero,
                 initialSelection: playScreenBloc.playParams.startSurahNumber,
                 dropdownMenuEntries: SUR
@@ -42,6 +44,8 @@ class _SurahDropdownState extends State<SurahDropdown> {
               ),
             ),
             DropdownMenu(
+              menuHeight: 300.h,
+
               initialSelection: playScreenBloc.playParams.startAya,
               dropdownMenuEntries: List.generate(
                 SUR[playScreenBloc.playParams.startSurahNumber - 1].versesCount,
@@ -81,6 +85,7 @@ class _SurahDropdownState extends State<SurahDropdown> {
           children: [
             Expanded(
               child: DropdownMenu(
+                menuHeight: 300.h,
                 expandedInsets: EdgeInsets.zero,
                 initialSelection: playScreenBloc.playParams.endSurahNumber,
                 dropdownMenuEntries: SUR
@@ -99,6 +104,8 @@ class _SurahDropdownState extends State<SurahDropdown> {
               ),
             ),
             DropdownMenu(
+              menuHeight: 300.h,
+
               initialSelection: playScreenBloc.playParams.endAya,
               dropdownMenuEntries: playScreenBloc.playParams.sameSurah
                   ? List.generate(

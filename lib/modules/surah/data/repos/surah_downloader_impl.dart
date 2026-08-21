@@ -2,11 +2,12 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:background_downloader/background_downloader.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:tahfez/modules/reader/domain/models/reader_model.dart';
 import 'package:tahfez/modules/surah/domain/enums/surah_download_status.dart';
 import 'package:tahfez/modules/surah/domain/models/surah_download_progress.dart';
 import 'package:tahfez/modules/surah/domain/repos/surah_downloader.dart';
+
+import 'package:tahfez/modules/surah/domain/utils/quran_audio_resolver.dart';
 
 class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
   static const _group = 'quran_download';
@@ -27,9 +28,6 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
   /// Tracks which tasks are part of a full-Quran batch.
   /// Key = taskId, Value = true if part of full Quran.
   final Map<String, bool> _taskIsFullQuran = {};
-
-  /// Cached base path to avoid repeated async calls.
-  String? _cachedBasePath;
 
   static final SurahDownloaderBackgroundDownloaderImpl instance =
       SurahDownloaderBackgroundDownloaderImpl._();
@@ -139,35 +137,14 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
     return (readerId, surahNumber);
   }
 
-  /// Returns the app-private base directory for quran audio.
-  Future<String> _basePath() async {
-    if (_cachedBasePath != null) return _cachedBasePath!;
-    final dir = await getApplicationSupportDirectory();
-    _cachedBasePath = '${dir.path}/quran_audio';
-    return _cachedBasePath!;
-  }
-
-  /// Relative subdirectory within applicationSupport for a reader.
-  String _readerSubDir(int readerId) => 'quran_audio/$readerId';
-
-  /// Returns the absolute directory path for a specific reader.
-  String _readerDir(String basePath, int readerId) => '$basePath/$readerId';
-
-  /// Returns the absolute file path for a specific surah of a reader.
-  String _surahPath(String basePath, int readerId, int surahNumber) {
-    final fileName = surahNumber.toString().padLeft(3, '0');
-    return '${_readerDir(basePath, readerId)}/$fileName.mp3';
-  }
-
   /// Builds the download URL for a surah.
   String _surahUrl(ReaderModel reader, int surahNumber) {
-    final fileName = surahNumber.toString().padLeft(3, '0');
-    return '${reader.downloadUrl}$fileName.mp3';
+    return '${reader.downloadUrl}${QuranAudioResolver.surahFileName(surahNumber)}';
   }
 
   /// Unique task ID for background_downloader.
   String _taskId(int readerId, int surahNumber) =>
-      'quran_${readerId}_${surahNumber.toString().padLeft(3, '0')}';
+      'quran_${readerId}_${QuranAudioResolver.surahFileName(surahNumber)}';
 
   // ──────────────────────────────────────────────────────────
   // Download single surah
@@ -180,11 +157,8 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
       return;
     }
 
-    final basePath = await _basePath();
-    final filePath = _surahPath(basePath, reader.id, surahNumber);
-
     // Skip if already downloaded
-    if (File(filePath).existsSync()) return;
+    if (await QuranAudioResolver.isDownloaded(reader.id, surahNumber)) return;
 
     // Skip if already downloading individually
     final key = '${reader.id}-$surahNumber';
@@ -207,16 +181,16 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
     if (_fullQuranInProgress.contains(reader.id)) return;
 
     _fullQuranInProgress.add(reader.id);
-    final basePath = await _basePath();
+    final basePath = await QuranAudioResolver.basePath();
 
     // Determine which surahs actually need downloading
     final toDownload = <int>[];
     for (int i = 1; i <= 114; i++) {
-      final filePath = _surahPath(basePath, reader.id, i);
+      final isDownloaded = QuranAudioResolver.isDownloadedSync(basePath, reader.id, i);
       final key = '${reader.id}-$i';
 
       // Skip if already on disk
-      if (File(filePath).existsSync()) continue;
+      if (isDownloaded) continue;
 
       // Skip if already downloading individually — let it finish on its own
       if (_individualInProgress.contains(key)) continue;
@@ -241,8 +215,8 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
         DownloadTask(
           taskId: taskId,
           url: _surahUrl(reader, surahNumber),
-          filename: '${surahNumber.toString().padLeft(3, '0')}.mp3',
-          directory: _readerSubDir(reader.id),
+          filename: QuranAudioResolver.surahFileName(surahNumber),
+          directory: QuranAudioResolver.readerSubDir(reader.id),
           baseDirectory: BaseDirectory.applicationSupport,
           group: _group,
           updates: Updates.statusAndProgress,
@@ -273,8 +247,8 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
     final task = DownloadTask(
       taskId: taskId,
       url: _surahUrl(reader, surahNumber),
-      filename: '${surahNumber.toString().padLeft(3, '0')}.mp3',
-      directory: _readerSubDir(reader.id),
+      filename: QuranAudioResolver.surahFileName(surahNumber),
+      directory: QuranAudioResolver.readerSubDir(reader.id),
       baseDirectory: BaseDirectory.applicationSupport,
       group: _group,
       updates: Updates.statusAndProgress,
@@ -309,8 +283,8 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
 
   @override
   Future<void> deleteSurah(ReaderModel reader, int surahNumber) async {
-    final basePath = await _basePath();
-    final file = File(_surahPath(basePath, reader.id, surahNumber));
+    final path = await QuranAudioResolver.localFilePath(reader.id, surahNumber);
+    final file = File(path);
     if (file.existsSync()) {
       await file.delete();
     }
@@ -318,8 +292,8 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
 
   @override
   Future<void> deleteFullQuran(ReaderModel reader) async {
-    final basePath = await _basePath();
-    final dir = Directory(_readerDir(basePath, reader.id));
+    final readerDirPath = await QuranAudioResolver.readerDir(reader.id);
+    final dir = Directory(readerDirPath);
     if (dir.existsSync()) {
       await dir.delete(recursive: true);
     }
@@ -331,14 +305,13 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
 
   @override
   Future<bool> isSurahDownloaded(ReaderModel reader, int surahNumber) async {
-    final basePath = await _basePath();
-    return File(_surahPath(basePath, reader.id, surahNumber)).existsSync();
+    return QuranAudioResolver.isDownloaded(reader.id, surahNumber);
   }
 
   @override
   Future<Set<int>> getDownloadedSurahs(ReaderModel reader) async {
-    final basePath = await _basePath();
-    final dir = Directory(_readerDir(basePath, reader.id));
+    final readerDirPath = await QuranAudioResolver.readerDir(reader.id);
+    final dir = Directory(readerDirPath);
     if (!dir.existsSync()) return {};
 
     final downloaded = <int>{};

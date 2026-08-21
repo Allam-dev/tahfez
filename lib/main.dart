@@ -1,4 +1,3 @@
-import 'package:audio_service/audio_service.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
@@ -13,7 +12,6 @@ import 'package:tahfez/core/di/main_di.dart';
 import 'package:tahfez/modules/surah/data/repos/surah_player_just_audio_impl.dart';
 import 'package:tahfez/modules/surah/data/repos/surah_downloader_impl.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:background_downloader/background_downloader.dart';
 
 Future<void> _appInit() async {
   WidgetsFlutterBinding.ensureInitialized();

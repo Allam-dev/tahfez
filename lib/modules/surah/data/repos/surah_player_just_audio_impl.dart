@@ -1,23 +1,25 @@
 import 'dart:async';
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:tahfez/modules/reader/domain/models/reader_model.dart';
 import 'package:tahfez/modules/surah/data/data_sources/api/surah_api.dart';
 import 'package:tahfez/modules/surah/domain/enums/surah_player_state.dart';
 import 'package:tahfez/modules/surah/domain/models/aya_timing_model.dart';
 import 'package:tahfez/modules/surah/domain/models/surah_model.dart';
 import 'package:tahfez/modules/surah/domain/params/surah_play_params.dart';
+import 'package:tahfez/modules/surah/domain/utils/quran_audio_resolver.dart';
 import '../../domain/surah_player.dart';
 
 /// Lightweight metadata for a single playback item.
 /// No native resources allocated — just timing info (~50 bytes each).
 class _PlaybackItem {
-  final String surahUrl;
+  final ReaderModel reader;
   final int surahNumber;
   final int startMs;
   final int endMs;
 
   const _PlaybackItem({
-    required this.surahUrl,
+    required this.reader,
     required this.surahNumber,
     required this.startMs,
     required this.endMs,
@@ -31,28 +33,37 @@ class SurahPlayerJustAudioImpl extends BaseAudioHandler implements SurahPlayer {
   final AudioPlayer _player = AudioPlayer();
   final SurahAPI _api = SurahAPI();
 
-  /// The lightweight playback plan — just metadata, no native AudioSource objects.
+  /// The lightweight playback plan — metadata for every scheduled clip.
   List<_PlaybackItem> _playbackPlan = [];
-  int _currentIndex = -1;
+
+  /// Current playing index in `_playbackPlan`.
+  int _currentPlanIndex = -1;
+
+  /// Index of the next unqueued item in `_playbackPlan`.
+  int _nextPlanIndex = 0;
+
   bool _isAdvancing = false;
+  StreamSubscription? _currentIndexSub;
 
   static SurahPlayerJustAudioImpl? _instance;
   static SurahPlayerJustAudioImpl get instance {
     if (_instance == null) {
-      throw Exception('SurahPlayerJustAudioImpl not initialized, Call `SurahPlayerJustAudioImpl.init()` in your main function before `runApp()` function');
+      throw Exception(
+        'SurahPlayerJustAudioImpl not initialized, Call `SurahPlayerJustAudioImpl.init()` in your main function before `runApp()` function',
+      );
     }
     return _instance!;
   }
 
   static Future<void> init() async {
     _instance = await AudioService.init(
-    builder: () => SurahPlayerJustAudioImpl._(),
-    config: AudioServiceConfig(
-      androidNotificationChannelId: 'tahfez.allam.labs',
-      androidNotificationChannelName: 'Quran Playback',
-      androidStopForegroundOnPause: false,
-    ),
-  );
+      builder: () => SurahPlayerJustAudioImpl._(),
+      config: const AudioServiceConfig(
+        androidNotificationChannelId: 'tahfez.allam.labs',
+        androidNotificationChannelName: 'Quran Playback',
+        androidStopForegroundOnPause: false,
+      ),
+    );
   }
 
   SurahPlayerJustAudioImpl._() {
@@ -87,14 +98,53 @@ class SurahPlayerJustAudioImpl extends BaseAudioHandler implements SurahPlayer {
           );
           break;
         case ProcessingState.completed:
-          _advanceToNext();
+          _onPlaybackCompleted();
           break;
+      }
+    });
+
+    // Sliding window: when item 0 finishes and item 1 starts playing,
+    // currentIndexStream emits 1. We remove item 0 and push item 3 to the end.
+    _currentIndexSub = _player.currentIndexStream.listen((index) {
+      if (index == 1) {
+        _onItemFinishedAndAdvance();
       }
     });
   }
 
-  /// Broadcasts the current playback state to the system notification,
-  /// lock screen, and any connected media controllers.
+  /// Advances the sliding window when an item in the playlist finishes.
+  Future<void> _onItemFinishedAndAdvance() async {
+    if (_isAdvancing) return;
+    _isAdvancing = true;
+
+    try {
+      _currentPlanIndex++;
+      if (_currentPlanIndex < _playbackPlan.length) {
+        final currentItem = _playbackPlan[_currentPlanIndex];
+        mediaItem.add(
+          MediaItem(
+            id: currentItem.surahNumber.toString(),
+            title: SUR[currentItem.surahNumber - 1].name,
+            album: 'Tahfez',
+          ),
+        );
+      }
+
+      // Drop finished item from start of playlist
+      await _player.removeAudioSourceAt(0);
+
+      // Append next plan item to end of playlist
+      if (_nextPlanIndex < _playbackPlan.length) {
+        final source = await _createAudioSource(_playbackPlan[_nextPlanIndex]);
+        _nextPlanIndex++;
+        await _player.addAudioSource(source);
+      }
+    } finally {
+      _isAdvancing = false;
+    }
+  }
+
+  /// Broadcasts playback state to notification and system controllers.
   void _broadcastPlaybackState(
     AudioProcessingState processingState,
     bool playing,
@@ -123,7 +173,7 @@ class SurahPlayerJustAudioImpl extends BaseAudioHandler implements SurahPlayer {
   }
 
   // ──────────────────────────────────────────────────────────
-  // BaseAudioHandler overrides (notification / lock screen / headset)
+  // BaseAudioHandler overrides
   // ──────────────────────────────────────────────────────────
 
   @override
@@ -131,7 +181,6 @@ class SurahPlayerJustAudioImpl extends BaseAudioHandler implements SurahPlayer {
     if (params != null) {
       await _startPlayback(params);
     } else {
-      // Resume — called from notification play button
       _player.play();
     }
   }
@@ -142,95 +191,118 @@ class SurahPlayerJustAudioImpl extends BaseAudioHandler implements SurahPlayer {
   @override
   Future<void> stop() async {
     _playbackPlan = [];
-    _currentIndex = -1;
+    _currentPlanIndex = -1;
+    _nextPlanIndex = 0;
     await _player.stop();
     _broadcastPlaybackState(AudioProcessingState.idle, false);
   }
 
   @override
-  Future<void> skipToNext() async => _advanceToNext();
+  Future<void> skipToNext() async {
+    if (_currentPlanIndex + 1 < _playbackPlan.length) {
+      await _loadPlanIndex(_currentPlanIndex + 1);
+    }
+  }
 
   @override
   Future<void> skipToPrevious() async {
-    if (_currentIndex > 0) {
-      _currentIndex -= 2; // will be incremented in _advanceToNext
-      await _advanceToNext();
+    if (_currentPlanIndex > 0) {
+      await _loadPlanIndex(_currentPlanIndex - 1);
     }
   }
 
   @override
   Future<void> seek(Duration position) async => _player.seek(position);
 
-  // ──────────────────────────────────────────────────────────
-  // SurahPlayer interface implementation
-  // ──────────────────────────────────────────────────────────
-
   @override
   Future<void> resume() => _player.play();
 
-  /// Starts playback with the given params (called from the cubit).
+  // ──────────────────────────────────────────────────────────
+  // Playback Window Management
+  // ──────────────────────────────────────────────────────────
+
+  /// Starts playback from params.
   Future<void> _startPlayback(SurahPlayParams params) async {
     _stateController.add(SurahPlayerState.loading);
     await _player.stop();
 
-    // Generate lightweight playback plan (just metadata, no AudioSource objects)
-    // Even 124,720 items (whole Quran × 20 repeats) ≈ ~6MB Dart heap — no OOM
     _playbackPlan = await _generatePlaybackPlan(params);
-    _currentIndex = -1;
 
     if (_playbackPlan.isEmpty) {
       _stateController.add(SurahPlayerState.idel);
       return;
     }
 
-    await _advanceToNext();
+    await _loadPlanIndex(0);
   }
 
-  /// Advances to the next item in the playback plan.
-  /// Called when the current clip completes or when starting playback.
-  Future<void> _advanceToNext() async {
-    if (_isAdvancing) return;
+  /// Loads/resets the sliding window starting at `targetIndex` in `_playbackPlan`.
+  Future<void> _loadPlanIndex(int targetIndex) async {
+    if (targetIndex < 0 || targetIndex >= _playbackPlan.length) return;
     _isAdvancing = true;
-
+    _stateController.add(SurahPlayerState.loading);
     try {
-      _currentIndex++;
-      if (_currentIndex < _playbackPlan.length) {
-        final item = _playbackPlan[_currentIndex];
-        await _player.setAudioSource(
-          ClippingAudioSource(
-            child: AudioSource.uri(Uri.parse(item.surahUrl)),
-            start: Duration(milliseconds: item.startMs),
-            end: Duration(milliseconds: item.endMs),
-          ),
-        );
+      await _player.stop();
+      _currentPlanIndex = targetIndex;
+      _nextPlanIndex = targetIndex;
 
-        // Update notification with current item info
+      final initialSources = <AudioSource>[];
+      while (
+          initialSources.length < 3 && _nextPlanIndex < _playbackPlan.length) {
+        final source = await _createAudioSource(_playbackPlan[_nextPlanIndex]);
+        initialSources.add(source);
+        _nextPlanIndex++;
+      }
+
+      if (initialSources.isNotEmpty) {
+        final currentItem = _playbackPlan[_currentPlanIndex];
         mediaItem.add(
           MediaItem(
-            id: item.surahUrl,
-            title: SUR[item.surahNumber - 1].name,
+            id: currentItem.surahNumber.toString(),
+            title: SUR[currentItem.surahNumber - 1].name,
             album: 'Tahfez',
           ),
         );
 
-        // Check if we were stopped during setAudioSource
-        if (_playbackPlan.isNotEmpty) {
-          _player.play();
-        }
-      } else {
-        // All items have been played
-        _playbackPlan = [];
-        _currentIndex = -1;
-        _stateController.add(SurahPlayerState.idel);
-        _broadcastPlaybackState(AudioProcessingState.completed, false);
+        await _player.setAudioSources(
+          initialSources,
+          initialIndex: 0,
+        );
+        _player.play();
       }
     } finally {
       _isAdvancing = false;
     }
   }
 
-  /// Generates a lightweight playback plan from the params.
-  /// Each item is just metadata (~50 bytes), not a native AudioSource.
+  /// Creates a ClippingAudioSource for a plan item.
+  /// Resolves URI locally (file://) if downloaded, or remotely (https://) if online.
+  Future<AudioSource> _createAudioSource(_PlaybackItem item) async {
+    final uri = await QuranAudioResolver.playbackUri(
+      item.reader,
+      item.surahNumber,
+    );
+    return ClippingAudioSource(
+      child: AudioSource.uri(uri),
+      start: Duration(milliseconds: item.startMs),
+      end: Duration(milliseconds: item.endMs),
+      tag: MediaItem(
+        id: uri.toString(),
+        title: SUR[item.surahNumber - 1].name,
+        album: 'Tahfez',
+      ),
+    );
+  }
+
+  void _onPlaybackCompleted() {
+    _playbackPlan = [];
+    _currentPlanIndex = -1;
+    _nextPlanIndex = 0;
+    _stateController.add(SurahPlayerState.idel);
+    _broadcastPlaybackState(AudioProcessingState.completed, false);
+  }
+
+  /// Generates the lightweight playback plan.
   Future<List<_PlaybackItem>> _generatePlaybackPlan(
     SurahPlayParams params,
   ) async {
@@ -247,9 +319,6 @@ class SurahPlayerJustAudioImpl extends BaseAudioHandler implements SurahPlayer {
           params.reader.id,
         );
         if (timings.isEmpty) continue;
-
-        final fileName = surah.toString().padLeft(3, '0');
-        final surahUrl = "${params.reader.downloadUrl}$fileName.mp3";
 
         final int startAya;
         final int endAya;
@@ -272,7 +341,7 @@ class SurahPlayerJustAudioImpl extends BaseAudioHandler implements SurahPlayer {
           // No per-ayah repetition: play the whole range as one clip
           plan.add(
             _PlaybackItem(
-              surahUrl: surahUrl,
+              reader: params.reader,
               surahNumber: surah,
               startMs: timings[startAya - 1].startTime,
               endMs: timings[endAya - 1].endTime,
@@ -284,7 +353,7 @@ class SurahPlayerJustAudioImpl extends BaseAudioHandler implements SurahPlayer {
             for (int repeat = 0; repeat < params.ayaRepeatCount; repeat++) {
               plan.add(
                 _PlaybackItem(
-                  surahUrl: surahUrl,
+                  reader: params.reader,
                   surahNumber: surah,
                   startMs: timings[aya - 1].startTime,
                   endMs: timings[aya - 1].endTime,
@@ -300,7 +369,10 @@ class SurahPlayerJustAudioImpl extends BaseAudioHandler implements SurahPlayer {
   }
 
   @override
-  Future<void> dispose() => _player.dispose();
+  Future<void> dispose() async {
+    await _currentIndexSub?.cancel();
+    await _player.dispose();
+  }
 
   @override
   Stream<SurahPlayerState> get state => _stateController.stream;
