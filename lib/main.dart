@@ -24,18 +24,7 @@ Future<void> _appInit() async {
     ]);
   }
 
-  // 1. Create the downloader singleton FIRST
-  final surahDownloader = SurahDownloaderImpl();
-
-  // 2. Configure notifications & register update listener
-  //    BEFORE calling start() — per background_downloader docs,
-  //    the listener must be registered before start() to receive
-  //    events from tasks that completed while the app was suspended.
-  surahDownloader.initialize();
-
-  // 3. NOW start the FileDownloader (triggers processing of
-  //    background events queued while app was closed)
-  await FileDownloader().start(autoCleanDatabase: true);
+  await SurahDownloaderBackgroundDownloaderImpl.instance.initialize();
 
   await HiveHelper.init();
   final storageDirectory = kIsWeb
@@ -46,19 +35,10 @@ Future<void> _appInit() async {
   );
 
   await DioFactory.instance.init();
-  // Initialize audio_service — creates the foreground service that
-  // keeps the Dart isolate alive even when the app is closed.
-  final audioHandler = await AudioService.init(
-    builder: () => SurahPlayerJustAudioImpl(),
-    config: AudioServiceConfig(
-      androidNotificationChannelId: 'tahfez.allam.labs',
-      androidNotificationChannelName: 'Quran Playback',
-      androidStopForegroundOnPause: false,
-    ),
-  );
 
-  // 4. Register all dependencies — pass the already-created downloader
-  initDI(audioHandler, surahDownloader);
+  await SurahPlayerJustAudioImpl.init();
+
+  initDI();
 
   await Future.wait<dynamic>([
     ScreenUtil.ensureScreenSize(),

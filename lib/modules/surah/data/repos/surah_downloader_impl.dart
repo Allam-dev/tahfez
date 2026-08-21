@@ -8,7 +8,7 @@ import 'package:tahfez/modules/surah/domain/enums/surah_download_status.dart';
 import 'package:tahfez/modules/surah/domain/models/surah_download_progress.dart';
 import 'package:tahfez/modules/surah/domain/repos/surah_downloader.dart';
 
-class SurahDownloaderImpl implements SurahDownloader {
+class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
   static const _group = 'quran_download';
 
   final StreamController<SurahDownloadProgress> _progressController =
@@ -31,17 +31,37 @@ class SurahDownloaderImpl implements SurahDownloader {
   /// Cached base path to avoid repeated async calls.
   String? _cachedBasePath;
 
-  SurahDownloaderImpl();
+  static final SurahDownloaderBackgroundDownloaderImpl instance =
+      SurahDownloaderBackgroundDownloaderImpl._();
+
+  SurahDownloaderBackgroundDownloaderImpl._();
 
   // ──────────────────────────────────────────────────────────
   // Initialization — MUST be called before FileDownloader().start()
   // ──────────────────────────────────────────────────────────
 
   /// Call this before FileDownloader().start() in main.dart.
-  /// Sets up notification config and registers the updates listener
-  /// so background events that fired while the app was suspended
-  /// are properly received.
-  void initialize() {
+  /// Sets up foreground service, notification config, and the
+  /// updates listener so background events that fired while the
+  /// app was suspended are properly received.
+  Future<void> initialize() async {
+    // Request notification permission (required on Android 13+ / API 33+).
+    // On older versions this is a no-op.
+    final status = await FileDownloader().permissions.status(
+      PermissionType.notifications,
+    );
+    if (status != PermissionStatus.granted) {
+      await FileDownloader().permissions.request(PermissionType.notifications);
+    }
+
+    // Run downloads as an Android foreground service so they survive
+    // app closure and have no 9-minute WorkManager time limit.
+    // Limit concurrent downloads to 3 to avoid overwhelming the network.
+    await FileDownloader().configure(
+      androidConfig: [(Config.runInForeground, Config.always)],
+      globalConfig: [(Config.holdingQueue, (3, null, null))],
+    );
+
     // Configure notifications for download tasks
     FileDownloader().configureNotification(
       running: const TaskNotification('جاري تحميل القرآن', '{filename}'),
@@ -72,10 +92,15 @@ class SurahDownloaderImpl implements SurahDownloader {
         _handleStatusUpdate(update, readerId, surahNumber);
       }
     });
+
+    await FileDownloader().start(autoCleanDatabase: true);
   }
 
   void _handleStatusUpdate(
-      TaskStatusUpdate update, int readerId, int surahNumber) {
+    TaskStatusUpdate update,
+    int readerId,
+    int surahNumber,
+  ) {
     if (update.status == TaskStatus.complete) {
       _progressController.add(
         SurahDownloadProgress(
@@ -105,7 +130,7 @@ class SurahDownloaderImpl implements SurahDownloader {
   // ──────────────────────────────────────────────────────────
 
   /// Parses a taskId like "quran_42_003" → (readerId=42, surahNumber=3).
-  (int readerId, int surahNumber)? _parseTaskId(String taskId) {
+  static (int readerId, int surahNumber)? _parseTaskId(String taskId) {
     final parts = taskId.split('_');
     if (parts.length != 3 || parts[0] != 'quran') return null;
     final readerId = int.tryParse(parts[1]);
@@ -212,18 +237,20 @@ class SurahDownloaderImpl implements SurahDownloader {
       final taskId = _taskId(reader.id, surahNumber);
       _taskIsFullQuran[taskId] = true;
 
-      tasks.add(DownloadTask(
-        taskId: taskId,
-        url: _surahUrl(reader, surahNumber),
-        filename: '${surahNumber.toString().padLeft(3, '0')}.mp3',
-        directory: _readerSubDir(reader.id),
-        baseDirectory: BaseDirectory.applicationSupport,
-        group: _group,
-        updates: Updates.statusAndProgress,
-        requiresWiFi: false,
-        retries: 5,
-        allowPause: true,
-      ));
+      tasks.add(
+        DownloadTask(
+          taskId: taskId,
+          url: _surahUrl(reader, surahNumber),
+          filename: '${surahNumber.toString().padLeft(3, '0')}.mp3',
+          directory: _readerSubDir(reader.id),
+          baseDirectory: BaseDirectory.applicationSupport,
+          group: _group,
+          updates: Updates.statusAndProgress,
+          requiresWiFi: false,
+          retries: 5,
+          allowPause: true,
+        ),
+      );
     }
 
     await FileDownloader().enqueueAll(tasks);
@@ -303,8 +330,7 @@ class SurahDownloaderImpl implements SurahDownloader {
   // ──────────────────────────────────────────────────────────
 
   @override
-  Future<bool> isSurahDownloaded(
-      ReaderModel reader, int surahNumber) async {
+  Future<bool> isSurahDownloaded(ReaderModel reader, int surahNumber) async {
     final basePath = await _basePath();
     return File(_surahPath(basePath, reader.id, surahNumber)).existsSync();
   }

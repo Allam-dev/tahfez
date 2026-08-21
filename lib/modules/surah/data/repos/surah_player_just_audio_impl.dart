@@ -36,7 +36,26 @@ class SurahPlayerJustAudioImpl extends BaseAudioHandler implements SurahPlayer {
   int _currentIndex = -1;
   bool _isAdvancing = false;
 
-  SurahPlayerJustAudioImpl() {
+  static SurahPlayerJustAudioImpl? _instance;
+  static SurahPlayerJustAudioImpl get instance {
+    if (_instance == null) {
+      throw Exception('SurahPlayerJustAudioImpl not initialized, Call `SurahPlayerJustAudioImpl.init()` in your main function before `runApp()` function');
+    }
+    return _instance!;
+  }
+
+  static Future<void> init() async {
+    _instance = await AudioService.init(
+    builder: () => SurahPlayerJustAudioImpl._(),
+    config: AudioServiceConfig(
+      androidNotificationChannelId: 'tahfez.allam.labs',
+      androidNotificationChannelName: 'Quran Playback',
+      androidStopForegroundOnPause: false,
+    ),
+  );
+  }
+
+  SurahPlayerJustAudioImpl._() {
     _player.playerStateStream.listen((playerState) {
       switch (playerState.processingState) {
         case ProcessingState.idle:

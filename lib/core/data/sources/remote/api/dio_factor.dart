@@ -9,10 +9,11 @@ class DioFactory {
   Dio? _dio;
 
   Dio get dio {
-    assert(
-      _dio != null,
-      'Dio must be initialized first, Call `DioFactory.instance.init()` in your main function before `runApp()` function',
-    );
+    if (_dio == null) {
+      throw Exception(
+        'Dio must be initialized first, Call `DioFactory.instance.init()` in your main function before `runApp()` function',
+      );
+    }
     return _dio!;
   }
 

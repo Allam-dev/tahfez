@@ -6,7 +6,9 @@ import 'package:tahfez/app/localization/locale_keys.g.dart';
 import 'package:tahfez/core/di/main_di.dart';
 import 'package:tahfez/core/extensions/context/navigation.dart';
 import 'package:tahfez/modules/reader/domain/models/reader_model.dart';
+import 'package:tahfez/modules/reader/domain/reader_repo.dart';
 import 'package:tahfez/modules/reader/presentation/readers/cubit/readers_screen_cubit.dart';
+import 'package:tahfez/modules/surah/domain/repos/surah_downloader.dart';
 import 'package:tahfez/modules/surah/presentation/reader_surah_list/reader_surah_list_screen.dart';
 
 class ReadersScreen extends StatelessWidget {
@@ -15,11 +17,12 @@ class ReadersScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => getIt<ReadersScreenCubit>(),
+      create: (_) => ReadersScreenCubit(
+        readerRepo: getIt<ReaderRepo>(),
+        surahDownloader: getIt<SurahDownloader>(),
+      ),
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(context.tr(LocaleKeys.downloads)),
-        ),
+        appBar: AppBar(title: Text(context.tr(LocaleKeys.downloads))),
         body: BlocBuilder<ReadersScreenCubit, ReadersScreenState>(
           builder: (context, state) {
             if (state is ReadersScreenLoading) {
@@ -68,7 +71,7 @@ class ReadersScreen extends StatelessWidget {
             return ListView.separated(
               padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
               itemCount: loaded.readers.length,
-              separatorBuilder: (_, __) => SizedBox(height: 10.h),
+              separatorBuilder: (_, _) => SizedBox(height: 10.h),
               itemBuilder: (context, index) {
                 final reader = loaded.readers[index];
                 return _ReaderCard(
@@ -108,9 +111,7 @@ class _ReaderCard extends StatelessWidget {
     return Card(
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        onTap: () => context.push(
-          ReaderSurahListScreen(reader: reader),
-        ),
+        onTap: () => context.push(ReaderSurahListScreen(reader: reader)),
         child: Padding(
           padding: EdgeInsets.all(16.w),
           child: Column(
@@ -140,7 +141,9 @@ class _ReaderCard extends StatelessWidget {
                           reader.rewaya,
                           style: TextStyle(
                             fontSize: 13.sp,
-                            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.6,
+                            ),
                           ),
                         ),
                       ],
@@ -150,11 +153,15 @@ class _ReaderCard extends StatelessWidget {
                   if (hasDownloads)
                     Container(
                       padding: EdgeInsets.symmetric(
-                          horizontal: 8.w, vertical: 4.h),
+                        horizontal: 8.w,
+                        vertical: 4.h,
+                      ),
                       decoration: BoxDecoration(
                         color: isComplete
                             ? theme.colorScheme.primary.withValues(alpha: 0.15)
-                            : theme.colorScheme.secondary.withValues(alpha: 0.15),
+                            : theme.colorScheme.secondary.withValues(
+                                alpha: 0.15,
+                              ),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
@@ -265,14 +272,11 @@ class _ReaderCard extends StatelessWidget {
           TextButton(
             onPressed: () {
               Navigator.pop(dialogContext);
-              context
-                  .read<ReadersScreenCubit>()
-                  .deleteFullQuran(reader);
+              context.read<ReadersScreenCubit>().deleteFullQuran(reader);
             },
             child: Text(
               context.tr(LocaleKeys.delete),
-              style: TextStyle(
-                  color: Theme.of(context).colorScheme.error),
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ),
         ],

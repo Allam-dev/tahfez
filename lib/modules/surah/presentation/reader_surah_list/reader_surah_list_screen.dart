@@ -22,9 +22,7 @@ class ReaderSurahListScreen extends StatelessWidget {
         surahDownloader: getIt<SurahDownloader>(),
       ),
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(reader.nameWithRewaya),
-        ),
+        appBar: AppBar(title: Text(reader.nameWithRewaya)),
         body: BlocBuilder<ReaderSurahListCubit, ReaderSurahListState>(
           builder: (context, state) {
             if (state is ReaderSurahListLoading) {
@@ -34,16 +32,14 @@ class ReaderSurahListScreen extends StatelessWidget {
             final loaded = state as ReaderSurahListLoaded;
 
             return ListView.separated(
-              padding: EdgeInsets.symmetric(
-                  horizontal: 16.w, vertical: 12.h),
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
               itemCount: SUR.length,
               separatorBuilder: (_, __) => const Divider(height: 1),
               itemBuilder: (context, index) {
                 final surah = SUR[index];
                 final surahNumber = surah.id;
                 final isDownloaded = loaded.isSurahDownloaded(surahNumber);
-                final isDownloading =
-                    loaded.isSurahDownloading(surahNumber);
+                final isDownloading = loaded.isSurahDownloading(surahNumber);
                 final progress = loaded.surahProgress(surahNumber);
                 final isLocked = loaded.isFullQuranDownloading;
 
@@ -114,10 +110,7 @@ class _SurahTile extends StatelessWidget {
       ),
       title: Text(
         surah.name,
-        style: TextStyle(
-          fontSize: 16.sp,
-          fontWeight: FontWeight.w500,
-        ),
+        style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w500),
       ),
       subtitle: isDownloading
           ? Padding(
@@ -131,16 +124,28 @@ class _SurahTile extends StatelessWidget {
               ),
             )
           : null,
-      trailing: _buildTrailing(context, theme),
+      trailing: _buildTrailing(context, theme, progress),
     );
   }
 
-  Widget _buildTrailing(BuildContext context, ThemeData theme) {
+  Widget _buildTrailing(
+    BuildContext context,
+    ThemeData theme,
+    double progress,
+  ) {
     if (isDownloading) {
-      return SizedBox(
-        width: 24.sp,
-        height: 24.sp,
-        child: const CircularProgressIndicator(strokeWidth: 2),
+      /// return SizedBox(
+      ///   width: 24.sp,
+      ///   height: 24.sp,
+      ///   child: const CircularProgressIndicator(strokeWidth: 2),
+      /// );
+      return Text(
+        "${(progress * 100).round()}%",
+        style: TextStyle(
+          fontSize: 14.sp,
+          fontWeight: FontWeight.w600,
+          color: theme.colorScheme.primary,
+        ),
       );
     }
 
@@ -155,9 +160,8 @@ class _SurahTile extends StatelessWidget {
           ),
           SizedBox(width: 4.w),
           IconButton(
-            onPressed: () => context
-                .read<ReaderSurahListCubit>()
-                .deleteSurah(surah.id),
+            onPressed: () =>
+                context.read<ReaderSurahListCubit>().deleteSurah(surah.id),
             icon: Icon(
               Icons.delete_outline_rounded,
               color: theme.colorScheme.error,
@@ -174,9 +178,7 @@ class _SurahTile extends StatelessWidget {
     return IconButton(
       onPressed: isLocked
           ? null
-          : () => context
-              .read<ReaderSurahListCubit>()
-              .downloadSurah(surah.id),
+          : () => context.read<ReaderSurahListCubit>().downloadSurah(surah.id),
       icon: Icon(
         Icons.download_rounded,
         size: 22.sp,
