@@ -1,15 +1,15 @@
 tahfez:
 
-donations screen
-
-maker readers dropdown by cubit
-
 change theme and language options
 
 social links for me, source code link, share button
 
-change app name and icon	
+change icon
+
+splash screen
 
 make the readme file and add button for the google play
+
+remove any unused code, fils, packges
 
 
