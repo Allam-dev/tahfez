@@ -483,5 +483,10 @@ abstract class  LocaleKeys {
   static const networkError = 'networkError';
   static const serverError = 'serverError';
   static const prayForMeMessage = 'prayForMeMessage';
+  static const shareApp = 'shareApp';
+  static const shareAppMessage = 'shareAppMessage';
+  static const github = 'github';
+  static const linkedin = 'linkedin';
+  static const facebook = 'facebook';
 
 }

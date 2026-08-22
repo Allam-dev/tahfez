@@ -479,5 +479,10 @@
   "permissionDenied": "تم رفض الإذن",
   "networkError": "خطأ في الشبكة",
   "serverError": "خطأ في الخادم",
-  "prayForMeMessage": "ادعُ لي بدعوة تتمناها لنفسك"
+  "prayForMeMessage": "ادعُ لي بدعوة تتمناها لنفسك",
+  "shareApp": "مشاركة التطبيق",
+  "shareAppMessage": "حَمِّل تطبيق تحفيظ للاستماع وقراءة القرآن الكريم:\n{}",
+  "github": "جيت هاب",
+  "linkedin": "لينكد إن",
+  "facebook": "فيسبوك"
 }

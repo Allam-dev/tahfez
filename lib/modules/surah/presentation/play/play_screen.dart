@@ -5,7 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:tahfez/app/localization/locale_keys.g.dart';
 import 'package:tahfez/app/style/colors/app_colors.dart';
 import 'package:tahfez/app/widgets/app_dropdown_menu.dart';
-import 'package:tahfez/app/widgets/app_drawer.dart';
+import 'package:tahfez/app/widgets/drawer/app_drawer.dart';
 import 'package:tahfez/core/di/main_di.dart';
 import 'package:tahfez/core/extensions/context/showing.dart';
 import 'package:tahfez/modules/reader/presentation/widgets/readers_dropdown.dart';
