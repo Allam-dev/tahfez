@@ -24,11 +24,9 @@ class ReadersScreenCubit extends Cubit<ReadersScreenState> {
   final Map<int, Map<int, double>> _activeProgress = {};
 
   ReadersScreenCubit({
-    required ReaderRepo readerRepo,
-    required SurahDownloader surahDownloader,
-  }) : _readerRepo = readerRepo,
-       _surahDownloader = surahDownloader,
-       super(ReadersScreenLoadingState()) {
+    required this._readerRepo,
+    required this._surahDownloader,
+  }) : super(ReadersScreenLoadingState()) {
     _listenToProgress();
     loadReaders();
   }
