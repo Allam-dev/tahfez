@@ -195,6 +195,8 @@ class SurahPlayerJustAudioImpl extends BaseAudioHandler implements SurahPlayer {
   Future<void> play([SurahPlayParams? params]) async {
     if (params != null) {
       await _startPlayback(params);
+    }else{
+      _player.play();
     }
   }
 
