@@ -12,6 +12,7 @@ import 'package:tahfez/core/di/main_di.dart';
 import 'package:tahfez/modules/surah/data/repos/surah_player_just_audio_impl.dart';
 import 'package:tahfez/modules/surah/data/repos/surah_downloader_impl.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:tahfez/modules/surah/domain/utils/quran_audio_resolver.dart';
 
 Future<void> _appInit() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,8 +22,8 @@ Future<void> _appInit() async {
       DeviceOrientation.portraitUp,
     ]);
   }
+  await QuranAudioResolver.init();
 
-  await SurahDownloaderBackgroundDownloaderImpl.instance.initialize();
 
   await HiveHelper.init();
   final storageDirectory = kIsWeb
@@ -33,7 +34,7 @@ Future<void> _appInit() async {
   );
 
   await DioFactory.instance.init();
-
+  await SurahDownloaderBackgroundDownloaderImpl.instance.initialize();
   await SurahPlayerJustAudioImpl.init();
 
   initDI();

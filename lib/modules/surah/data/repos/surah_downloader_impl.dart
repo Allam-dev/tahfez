@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:background_downloader/background_downloader.dart';
 import 'package:tahfez/modules/reader/domain/models/reader_model.dart';
+import 'package:tahfez/modules/surah/data/data_sources/api/surah_api.dart';
 import 'package:tahfez/modules/surah/domain/enums/surah_download_status.dart';
 import 'package:tahfez/modules/surah/domain/models/surah_download_progress.dart';
 import 'package:tahfez/modules/surah/domain/repos/surah_downloader.dart';
@@ -11,6 +12,9 @@ import 'package:tahfez/modules/surah/domain/utils/quran_audio_resolver.dart';
 
 class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
   static const _group = 'quran_download';
+  static const _batchSize = 5;
+
+  final SurahAPI _surahApi;
 
   final StreamController<SurahDownloadProgress> _progressController =
       StreamController<SurahDownloadProgress>.broadcast();
@@ -32,7 +36,8 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
   static final SurahDownloaderBackgroundDownloaderImpl instance =
       SurahDownloaderBackgroundDownloaderImpl._();
 
-  SurahDownloaderBackgroundDownloaderImpl._();
+  SurahDownloaderBackgroundDownloaderImpl._({SurahAPI? surahApi})
+      : _surahApi = surahApi ?? SurahAPI();
 
   // ──────────────────────────────────────────────────────────
   // Initialization — MUST be called before FileDownloader().start()
@@ -78,13 +83,11 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
       final (readerId, surahNumber) = parsed;
 
       if (update is TaskProgressUpdate) {
-        _progressController.add(
-          SurahDownloadProgress(
-            readerId: readerId,
-            surahNumber: surahNumber,
-            progress: update.progress,
-            status: SurahDownloadStatus.downloading,
-          ),
+        _notifyProgress(
+          readerId,
+          surahNumber,
+          update.progress,
+          SurahDownloadStatus.downloading,
         );
       } else if (update is TaskStatusUpdate) {
         _handleStatusUpdate(update, readerId, surahNumber);
@@ -100,39 +103,60 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
     int surahNumber,
   ) {
     if (update.status == TaskStatus.complete) {
-      _progressController.add(
-        SurahDownloadProgress(
-          readerId: readerId,
-          surahNumber: surahNumber,
-          progress: 1.0,
-          status: SurahDownloadStatus.completed,
-        ),
-      );
+      _notifyProgress(readerId, surahNumber, 1.0, SurahDownloadStatus.completed);
       _onDownloadFinished(readerId, surahNumber, update.task.taskId);
     } else if (update.status == TaskStatus.failed ||
-        update.status == TaskStatus.notFound || update.status == TaskStatus.canceled) {
-      _progressController.add(
-        SurahDownloadProgress(
-          readerId: readerId,
-          surahNumber: surahNumber,
-          progress: 0.0,
-          status: SurahDownloadStatus.failed,
-        ),
-      );
+        update.status == TaskStatus.notFound ||
+        update.status == TaskStatus.canceled) {
+      _notifyProgress(readerId, surahNumber, 0.0, SurahDownloadStatus.failed);
       _onDownloadFinished(readerId, surahNumber, update.task.taskId);
     }
   }
 
   // ──────────────────────────────────────────────────────────
-  // Helpers
+  // Helpers & Clean Factories
   // ──────────────────────────────────────────────────────────
 
-  /// Parses a taskId like "quran_42_003" → (readerId=42, surahNumber=3).
+  String _surahKey(int readerId, int surahNumber) => '$readerId-$surahNumber';
+
+  void _notifyProgress(
+    int readerId,
+    int surahNumber,
+    double progress,
+    SurahDownloadStatus status,
+  ) {
+    _progressController.add(
+      SurahDownloadProgress(
+        readerId: readerId,
+        surahNumber: surahNumber,
+        progress: progress,
+        status: status,
+      ),
+    );
+  }
+
+  DownloadTask _createTask(ReaderModel reader, int surahNumber) {
+    return DownloadTask(
+      taskId: _taskId(reader.id, surahNumber),
+      url: _surahUrl(reader, surahNumber),
+      filename: QuranAudioResolver.surahFileName(surahNumber),
+      directory: QuranAudioResolver.relativeReaderDir(reader.id),
+      baseDirectory: BaseDirectory.applicationSupport,
+      group: _group,
+      updates: Updates.statusAndProgress,
+      requiresWiFi: false,
+      retries: 5,
+      allowPause: true,
+    );
+  }
+
+  /// Parses a taskId like "quran_42_003.mp3" or "quran_42_003" → (readerId=42, surahNumber=3).
   static (int readerId, int surahNumber)? _parseTaskId(String taskId) {
     final parts = taskId.split('_');
     if (parts.length != 3 || parts[0] != 'quran') return null;
     final readerId = int.tryParse(parts[1]);
-    final surahNumber = int.tryParse(parts[2]);
+    final cleanSurahStr = parts[2].replaceAll('.mp3', '');
+    final surahNumber = int.tryParse(cleanSurahStr);
     if (readerId == null || surahNumber == null) return null;
     return (readerId, surahNumber);
   }
@@ -158,13 +182,25 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
     }
 
     // Skip if already downloaded
-    if (await QuranAudioResolver.isDownloaded(reader.id, surahNumber)) return;
+    if (QuranAudioResolver.isDownloadedSync(reader.id, surahNumber)) return;
 
     // Skip if already downloading individually
-    final key = '${reader.id}-$surahNumber';
+    final key = _surahKey(reader.id, surahNumber);
     if (_individualInProgress.contains(key)) return;
     _individualInProgress.add(key);
 
+    _notifyProgress(reader.id, surahNumber, 0.0, SurahDownloadStatus.downloading);
+
+    // Step 1: Fetch and cache surah timing data
+    try {
+      await _surahApi.getTiming(surahNumber, reader.id);
+    } catch (e) {
+      _individualInProgress.remove(key);
+      _notifyProgress(reader.id, surahNumber, 0.0, SurahDownloadStatus.failed);
+      return;
+    }
+
+    // Step 2: Enqueue audio download
     await _enqueueDownload(
       reader: reader,
       surahNumber: surahNumber,
@@ -181,13 +217,30 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
     if (_fullQuranInProgress.contains(reader.id)) return;
 
     _fullQuranInProgress.add(reader.id);
-    final basePath = await QuranAudioResolver.basePath();
 
-    // Determine which surahs actually need downloading
+    final toDownload = _getSurahsToDownload(reader);
+    if (toDownload.isEmpty) {
+      _fullQuranInProgress.remove(reader.id);
+      return;
+    }
+
+    final tasksToEnqueue = await _prepareFullQuranTasks(reader, toDownload);
+
+    if (tasksToEnqueue.isEmpty) {
+      _fullQuranInProgress.remove(reader.id);
+      _fullQuranRemaining.remove(reader.id);
+      return;
+    }
+
+    _fullQuranRemaining[reader.id] = tasksToEnqueue.length;
+    await FileDownloader().enqueueAll(tasksToEnqueue);
+  }
+
+  List<int> _getSurahsToDownload(ReaderModel reader) {
     final toDownload = <int>[];
     for (int i = 1; i <= 114; i++) {
-      final isDownloaded = QuranAudioResolver.isDownloadedSync(basePath, reader.id, i);
-      final key = '${reader.id}-$i';
+      final isDownloaded = QuranAudioResolver.isDownloadedSync(reader.id, i);
+      final key = _surahKey(reader.id, i);
 
       // Skip if already on disk
       if (isDownloaded) continue;
@@ -197,37 +250,46 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
 
       toDownload.add(i);
     }
+    return toDownload;
+  }
 
-    if (toDownload.isEmpty) {
-      _fullQuranInProgress.remove(reader.id);
-      return;
-    }
+  Future<List<DownloadTask>> _prepareFullQuranTasks(
+    ReaderModel reader,
+    List<int> toDownload,
+  ) async {
+    final tasksToEnqueue = <DownloadTask>[];
 
-    _fullQuranRemaining[reader.id] = toDownload.length;
+    for (int i = 0; i < toDownload.length; i += _batchSize) {
+      if (!_fullQuranInProgress.contains(reader.id)) break;
 
-    // Use enqueueAll for efficiency with many tasks
-    final tasks = <DownloadTask>[];
-    for (final surahNumber in toDownload) {
-      final taskId = _taskId(reader.id, surahNumber);
-      _taskIsFullQuran[taskId] = true;
+      final chunk = toDownload.sublist(
+        i,
+        i + _batchSize > toDownload.length ? toDownload.length : i + _batchSize,
+      );
 
-      tasks.add(
-        DownloadTask(
-          taskId: taskId,
-          url: _surahUrl(reader, surahNumber),
-          filename: QuranAudioResolver.surahFileName(surahNumber),
-          directory: QuranAudioResolver.readerSubDir(reader.id),
-          baseDirectory: BaseDirectory.applicationSupport,
-          group: _group,
-          updates: Updates.statusAndProgress,
-          requiresWiFi: false,
-          retries: 5,
-          allowPause: true,
-        ),
+      await Future.wait(
+        chunk.map((surahNumber) => _processBatchSurah(reader, surahNumber, tasksToEnqueue)),
       );
     }
 
-    await FileDownloader().enqueueAll(tasks);
+    return tasksToEnqueue;
+  }
+
+  Future<void> _processBatchSurah(
+    ReaderModel reader,
+    int surahNumber,
+    List<DownloadTask> tasksToEnqueue,
+  ) async {
+    _notifyProgress(reader.id, surahNumber, 0.0, SurahDownloadStatus.downloading);
+    final taskId = _taskId(reader.id, surahNumber);
+
+    try {
+      await _surahApi.getTiming(surahNumber, reader.id);
+      _taskIsFullQuran[taskId] = true;
+      tasksToEnqueue.add(_createTask(reader, surahNumber));
+    } catch (e) {
+      _notifyProgress(reader.id, surahNumber, 0.0, SurahDownloadStatus.failed);
+    }
   }
 
   // ──────────────────────────────────────────────────────────
@@ -244,24 +306,11 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
     // Track whether this task is part of full-Quran batch
     _taskIsFullQuran[taskId] = isPartOfFullQuran;
 
-    final task = DownloadTask(
-      taskId: taskId,
-      url: _surahUrl(reader, surahNumber),
-      filename: QuranAudioResolver.surahFileName(surahNumber),
-      directory: QuranAudioResolver.readerSubDir(reader.id),
-      baseDirectory: BaseDirectory.applicationSupport,
-      group: _group,
-      updates: Updates.statusAndProgress,
-      requiresWiFi: false,
-      retries: 5,
-      allowPause: true,
-    );
-
-    await FileDownloader().enqueue(task);
+    await FileDownloader().enqueue(_createTask(reader, surahNumber));
   }
 
   void _onDownloadFinished(int readerId, int surahNumber, String taskId) {
-    final key = '$readerId-$surahNumber';
+    final key = _surahKey(readerId, surahNumber);
     _individualInProgress.remove(key);
 
     final isPartOfFullQuran = _taskIsFullQuran.remove(taskId) ?? false;

@@ -29,18 +29,18 @@ abstract class DioExceptionHandler {
 
   static Failure _handleBadResponse(DioException exception) {
     try {
+      final type = _statusCodeToFailureType(
+        exception.response?.statusCode ?? 0,
+      );
       return Failure(
-        type: _statusCodeToFailureType(exception.response?.statusCode ?? 0),
+        type: type,
         message:
             exception.response?.data['error']?['message'] ??
             exception.response?.data['message'] ??
-            LocaleKeys.somethingWentWrong,
+            type.message,
       );
     } catch (e) {
-      return Failure(
-        type: FailureType.unknown,
-        message: LocaleKeys.somethingWentWrong,
-      );
+      return Failure(type: FailureType.unknown);
     }
   }
 
@@ -50,8 +50,14 @@ abstract class DioExceptionHandler {
         return FailureType.notFound;
       case 401:
         return FailureType.authentication;
+      case 403:
+        return FailureType.forbidden;
       case 400:
         return FailureType.badRequest;
+      case 500:
+      case 502:
+      case 503:
+        return FailureType.server;
       default:
         return FailureType.unknown;
     }

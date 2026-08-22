@@ -474,5 +474,13 @@ abstract class  LocaleKeys {
   static const downloadSurah = 'downloadSurah';
   static const fullQuranDownloading = 'fullQuranDownloading';
   static const donation = 'donation';
+  static const forbidden = 'forbidden';
+  static const notFound = 'notFound';
+  static const badRequest = 'badRequest';
+  static const invalidInput = 'invalidInput';
+  static const authentication = 'authentication';
+  static const permissionDenied = 'permissionDenied';
+  static const networkError = 'networkError';
+  static const serverError = 'serverError';
 
 }

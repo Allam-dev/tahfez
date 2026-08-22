@@ -1,13 +1,15 @@
 tahfez:
 
-make playing smother by prepare 2 or 3 farther records and play from donwloaded first
-
-make parller request for timing
-
 when download any surah we must make a success request to get its timing and it will be autmaticly cached
+
+maker readers dropdown by cubit
 
 change theme and language options
 
 social links for me, source code link, share button
 
 change app name and icon	
+
+make the readme file and add button for the google play
+
+

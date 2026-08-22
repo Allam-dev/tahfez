@@ -469,5 +469,13 @@
   "deleteReaderConfirm": "Are you sure you want to delete all downloaded recitations for this reader?",
   "downloadSurah": "Download Surah",
   "fullQuranDownloading": "Full Quran download in progress",
-  "donation": "Donation"
+  "donation": "Donation",
+  "forbidden": "Access forbidden",
+  "notFound": "Resource not found",
+  "badRequest": "Bad request",
+  "invalidInput": "Invalid input",
+  "authentication": "Authentication error",
+  "permissionDenied": "Permission denied",
+  "networkError": "Network error",
+  "serverError": "Server error"
 }

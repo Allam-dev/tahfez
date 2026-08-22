@@ -4,45 +4,43 @@ import 'package:path_provider/path_provider.dart';
 import 'package:tahfez/modules/reader/domain/models/reader_model.dart';
 
 abstract class QuranAudioResolver {
-  static String? _cachedBasePath;
+  static String? _basePath;
 
-  /// Relative subdirectory within applicationSupport for a reader.
-  static String readerSubDir(int readerId) => 'quran_audio/$readerId';
+  /// Relative directory path within applicationSupport for background_downloader (e.g. 'quran_audio/42').
+  static String relativeReaderDir(int readerId) => 'quran_audio/$readerId';
 
   /// Standardized filename for a surah, e.g., "001.mp3".
   static String surahFileName(int surahNumber) =>
       '${surahNumber.toString().padLeft(3, '0')}.mp3';
 
   /// Absolute base path to quran_audio directory in application support.
-  static Future<String> basePath() async {
-    if (_cachedBasePath != null) return _cachedBasePath!;
+  static Future<String> init() async {
+    if (_basePath != null) return _basePath!;
     final dir = await getApplicationSupportDirectory();
-    _cachedBasePath = '${dir.path}/quran_audio';
-    return _cachedBasePath!;
+    _basePath = '${dir.path}/quran_audio';
+    return _basePath!;
   }
 
-  /// Absolute directory path for a reader's audio files.
+  /// Absolute directory path for a reader's audio files (e.g. '/app_support/quran_audio/42').
   static Future<String> readerDir(int readerId) async {
-    final base = await basePath();
-    return '$base/$readerId';
+    return '$_basePath/$readerId';
   }
 
   /// Absolute file path for a specific surah of a reader.
   static Future<String> localFilePath(int readerId, int surahNumber) async {
-    final base = await basePath();
-    return '$base/$readerId/${surahFileName(surahNumber)}';
+    return '$_basePath/$readerId/${surahFileName(surahNumber)}';
   }
 
-  /// Checks if a surah audio file exists locally on disk.
+  /// Checks if a surah audio file exists locally on disk (Async).
   static Future<bool> isDownloaded(int readerId, int surahNumber) async {
     final path = await localFilePath(readerId, surahNumber);
     return File(path).existsSync();
   }
 
-  /// Synchronous check if base path is already cached.
-  static bool isDownloadedSync(
-      String basePath, int readerId, int surahNumber) {
-    final path = '$basePath/$readerId/${surahFileName(surahNumber)}';
+  /// Synchronous check using cached basePath if available.
+  static bool isDownloadedSync(int readerId, int surahNumber) {
+    if (_basePath == null) return false;
+    final path = '$_basePath/$readerId/${surahFileName(surahNumber)}';
     return File(path).existsSync();
   }
 

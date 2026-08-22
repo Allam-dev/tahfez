@@ -470,5 +470,13 @@
   "deleteReaderConfirm": "هل تريد حذف جميع التلاوات المحملة لهذا القارئ؟",
   "downloadSurah": "تحميل السورة",
   "fullQuranDownloading": "جاري تحميل القرآن كاملاً",
-  "donation": "تبرع"
+  "donation": "تبرع",
+  "forbidden": "الوصول غير مسموح",
+  "notFound": "العنصر غير موجود",
+  "badRequest": "طلب غير صالح",
+  "invalidInput": "مدخلات غير صالحة",
+  "authentication": "خطأ في المصادقة",
+  "permissionDenied": "تم رفض الإذن",
+  "networkError": "خطأ في الشبكة",
+  "serverError": "خطأ في الخادم"
 }
