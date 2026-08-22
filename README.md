@@ -36,21 +36,19 @@ Whether you are revising a Juz', memorizing a new Surah, or practicing Ayah by A
 
 ## 📱 Screenshots
 
-<div align="center">
-
-| Home & Reader Selection | Audio Player & Timing | Repetition Controls |
-| :---: | :---: | :---: |
-| <img src="./screen_shots/Screenshot_1787401645.png" width="250" alt="Reciters List" /> | <img src="./screen_shots/Screenshot_1787401664.png" width="250" alt="Audio Player" /> | <img src="./screen_shots/Screenshot_1787401699.png" width="250" alt="Repetition Settings" /> |
-
-| Offline Downloads | Surah List | Custom Options |
-| :---: | :---: | :---: |
-| <img src="./screen_shots/Screenshot_1787401702.png" width="250" alt="Download Manager" /> | <img src="./screen_shots/Screenshot_1787401710.png" width="250" alt="Surah Selection" /> | <img src="./screen_shots/Screenshot_1787401713.png" width="250" alt="Settings" /> |
-
-| Player Highlights | Dark & Light Modes | Full Quran Downloads |
-| :---: | :---: | :---: |
-| <img src="./screen_shots/Screenshot_1787401718.png" width="250" alt="Active Ayah Highlight" /> | <img src="./screen_shots/Screenshot_1787401736.png" width="250" alt="Theme Toggle" /> | <img src="./screen_shots/Screenshot_1787401745.png" width="250" alt="Full Reciter Downloads" /> |
-
-</div>
+<p align="center">
+  <img src="./screen_shots/Screenshot_1787401645.png" width="250" alt="Tahfez Screenshot" />
+  <img src="./screen_shots/Screenshot_1787401664.png" width="250" alt="Tahfez Screenshot" />
+  <img src="./screen_shots/Screenshot_1787401699.png" width="250" alt="Tahfez Screenshot" />
+  <br/><br/>
+  <img src="./screen_shots/Screenshot_1787401702.png" width="250" alt="Tahfez Screenshot" />
+  <img src="./screen_shots/Screenshot_1787401710.png" width="250" alt="Tahfez Screenshot" />
+  <img src="./screen_shots/Screenshot_1787401713.png" width="250" alt="Tahfez Screenshot" />
+  <br/><br/>
+  <img src="./screen_shots/Screenshot_1787401718.png" width="250" alt="Tahfez Screenshot" />
+  <img src="./screen_shots/Screenshot_1787401736.png" width="250" alt="Tahfez Screenshot" />
+  <img src="./screen_shots/Screenshot_1787401745.png" width="250" alt="Tahfez Screenshot" />
+</p>
 
 ---
 
