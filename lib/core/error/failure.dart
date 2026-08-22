@@ -5,7 +5,7 @@ import 'exceptions/no_internet_exception.dart';
 import 'handlers/dio_exception_handler.dart';
 
 enum FailureType {
-  unknown(LocaleKeys.somethingWentWrong),
+  unknown(LocaleKeys.noInternetConnection),
   timeout(LocaleKeys.itTookTooLongTryAgain),
   forbidden(LocaleKeys.forbidden),
   notFound(LocaleKeys.notFound),
@@ -27,6 +27,11 @@ class Failure {
 
   Failure({this.type = FailureType.unknown, String? message})
     : message = message ?? type.message;
+
+  @override
+  String toString() {
+    return 'FailureType: $type, Message: $message';
+  }
 
   factory Failure.fromException(dynamic e) {
     switch (e) {

@@ -1,6 +1,6 @@
 tahfez:
 
-when download any surah we must make a success request to get its timing and it will be autmaticly cached
+donations screen
 
 maker readers dropdown by cubit
 

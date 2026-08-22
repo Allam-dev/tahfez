@@ -18,11 +18,12 @@ class _SurahDropdownState extends State<SurahDropdown> {
         Row(
           spacing: 16.w,
           children: [
-            // from
+            // from surah
             Expanded(
-              child: DropdownMenu<int>(
+              child: AppDropdownMenu<int>(
                 menuHeight: 300.h,
-
+                enableFilter: true,
+                requestFocusOnTap: true,
                 expandedInsets: EdgeInsets.zero,
                 initialSelection: playScreenBloc.playParams.startSurahNumber,
                 dropdownMenuEntries: SUR
@@ -43,14 +44,16 @@ class _SurahDropdownState extends State<SurahDropdown> {
                 },
               ),
             ),
-            DropdownMenu(
+            // from aya
+            AppDropdownMenu<int>(
               menuHeight: 300.h,
-
+              enableFilter: true,
+              requestFocusOnTap: true,
               initialSelection: playScreenBloc.playParams.startAya,
               dropdownMenuEntries: List.generate(
                 SUR[playScreenBloc.playParams.startSurahNumber - 1].versesCount,
                 (index) {
-                  return DropdownMenuEntry(
+                  return DropdownMenuEntry<int>(
                     value: index + 1,
                     label: (index + 1).toString(),
                   );
@@ -83,14 +86,17 @@ class _SurahDropdownState extends State<SurahDropdown> {
         Row(
           spacing: 16.w,
           children: [
+            // to surah
             Expanded(
-              child: DropdownMenu(
+              child: AppDropdownMenu<int>(
                 menuHeight: 300.h,
+                enableFilter: true,
+                requestFocusOnTap: true,
                 expandedInsets: EdgeInsets.zero,
                 initialSelection: playScreenBloc.playParams.endSurahNumber,
                 dropdownMenuEntries: SUR
                     .skip(playScreenBloc.playParams.startSurahNumber - 1)
-                    .map((e) => DropdownMenuEntry(value: e.id, label: e.name))
+                    .map((e) => DropdownMenuEntry<int>(value: e.id, label: e.name))
                     .toList(),
                 onSelected: (surahId) {
                   if (surahId != null) {
@@ -103,9 +109,11 @@ class _SurahDropdownState extends State<SurahDropdown> {
                 },
               ),
             ),
-            DropdownMenu(
+            // to aya
+            AppDropdownMenu<int>(
               menuHeight: 300.h,
-
+              enableFilter: true,
+              requestFocusOnTap: true,
               initialSelection: playScreenBloc.playParams.endAya,
               dropdownMenuEntries: playScreenBloc.playParams.sameSurah
                   ? List.generate(
@@ -113,7 +121,7 @@ class _SurahDropdownState extends State<SurahDropdown> {
                               .versesCount -
                           playScreenBloc.playParams.startAya,
                       (index) {
-                        return DropdownMenuEntry(
+                        return DropdownMenuEntry<int>(
                           value: index + playScreenBloc.playParams.startAya + 1,
                           label:
                               (index + playScreenBloc.playParams.startAya + 1)
@@ -125,7 +133,7 @@ class _SurahDropdownState extends State<SurahDropdown> {
                       SUR[playScreenBloc.playParams.endSurahNumber - 1]
                           .versesCount,
                       (index) {
-                        return DropdownMenuEntry(
+                        return DropdownMenuEntry<int>(
                           value: index + 1,
                           label: (index + 1).toString(),
                         );

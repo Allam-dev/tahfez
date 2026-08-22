@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:tahfez/app/localization/locale_keys.g.dart';
 import 'package:tahfez/app/style/colors/app_colors.dart';
+import 'package:tahfez/app/widgets/app_dropdown_menu.dart';
 import 'package:tahfez/app/widgets/app_drawer.dart';
 import 'package:tahfez/core/di/main_di.dart';
 import 'package:tahfez/core/extensions/context/showing.dart';
@@ -40,6 +41,7 @@ class PlayScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   spacing: 30.h,
                   children: [
+                    5.verticalSpace,
                     // readers dropdown
                     ReadersDropdown(
                       onChanged: (value) =>
@@ -47,8 +49,11 @@ class PlayScreen extends StatelessWidget {
                     ),
                     //  surah dropdown
                     SurahDropdown(),
+                    20.verticalSpace,
                     // aya repeat count and section repeat count
                     SurahRepeatCounterWidget(),
+                    20.verticalSpace,
+
                     // play button
                     PlayPauseButton(),
                   ],
