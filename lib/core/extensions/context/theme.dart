@@ -12,4 +12,10 @@ extension ThemeExtension on BuildContext {
   void setThemeMode(ThemeMode mode) {
     read<ThemeCubit>().setMode(mode);
   }
+
+  void switchTheme(bool? isDark) {
+    if (isDark != null) {
+      setThemeMode(isDark ? ThemeMode.dark : ThemeMode.light);
+    }
+  }
 }

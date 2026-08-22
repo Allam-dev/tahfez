@@ -87,6 +87,7 @@ ThemeData DARK_THEME = ThemeData(
       backgroundColor: AppColors.teal300,
       foregroundColor: AppColors.night900,
       elevation: 0,
+      minimumSize: const Size(double.infinity, 50),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     ),

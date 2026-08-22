@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:tahfez/app/localization/locale_keys.g.dart';
 import 'package:tahfez/core/extensions/context/navigation.dart';
+import 'package:tahfez/core/extensions/context/theme.dart';
 import 'package:tahfez/modules/donation/presentation/donation_screen.dart';
 import 'package:tahfez/modules/reader/presentation/readers/readers_screen.dart';
 
@@ -20,8 +21,7 @@ class AppDrawer extends StatelessWidget {
             // Header
             Container(
               width: double.infinity,
-              padding: EdgeInsets.symmetric(
-                  horizontal: 20.w, vertical: 24.h),
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 24.h),
               decoration: BoxDecoration(
                 color: theme.colorScheme.primary.withValues(alpha: 0.08),
               ),
@@ -56,10 +56,7 @@ class AppDrawer extends StatelessWidget {
               ),
               title: Text(
                 context.tr(LocaleKeys.downloads),
-                style: TextStyle(
-                  fontSize: 15.sp,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w500),
               ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -78,10 +75,7 @@ class AppDrawer extends StatelessWidget {
               ),
               title: Text(
                 context.tr(LocaleKeys.donation),
-                style: TextStyle(
-                  fontSize: 15.sp,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w500),
               ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -91,19 +85,10 @@ class AppDrawer extends StatelessWidget {
                 context.push(const DonationScreen());
               },
             ),
-
-            const Spacer(),
-
-            // App version / branding
-            Padding(
-              padding: EdgeInsets.only(bottom: 16.h),
-              child: Text(
-                'v1.0.0',
-                style: TextStyle(
-                  fontSize: 12.sp,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
-                ),
-              ),
+            SwitchListTile.adaptive(
+              value: context.isDarkMode,
+              onChanged: (value) => context.switchTheme(value),
+              title: Text(context.tr(LocaleKeys.darkMode)),
             ),
           ],
         ),
