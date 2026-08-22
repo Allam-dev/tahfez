@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:tahfez/app/assets/assets.dart';
 import 'package:tahfez/app/localization/locale_keys.g.dart';
 import 'package:tahfez/app/widgets/drawer/share_app_tile.dart';
 import 'package:tahfez/app/widgets/drawer/social_links_row.dart';
@@ -31,14 +32,17 @@ class AppDrawer extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    Icons.menu_book_rounded,
-                    size: 36.sp,
-                    color: theme.colorScheme.primary,
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12.r),
+                    child: Image.asset(
+                      IconsAssets.appIcon,
+                      width: 48.w,
+                      height: 48.h,
+                    ),
                   ),
                   SizedBox(height: 12.h),
                   Text(
-                    'تحفيظ',
+                    context.tr(LocaleKeys.appName),
                     style: TextStyle(
                       fontSize: 22.sp,
                       fontWeight: FontWeight.w700,

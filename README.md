@@ -122,6 +122,16 @@ Ensure you have the following installed on your development machine:
    flutter run
    ```
 
+### 🛠️ Helper Scripts & Dev Assets
+
+The repository includes utility scripts in the `scripts/` directory to automate code generation and asset management:
+
+* **[scripts/generate.sh](scripts/generate.sh)**: An interactive shell script to run `build_runner` (for code generation) and generate localization keys using `easy_localization` (outputting to `lib/app/localization/locale_keys.g.dart`).
+* **[scripts/generate_assets.py](scripts/generate_assets.py)**: A Python script that scans the `assets/` directory and generates strongly-typed Dart asset constants in `lib/app/assets/assets.dart`.
+
+> [!NOTE]
+> **Development-Only Assets (`assets/dev/`)**: The `assets/dev` directory is reserved for assets used strictly during development (e.g. splash screen icons, launcher icon sources, and raw design files). These files are not bundled into the production app runtime and are ignored by `generate_assets.py`.
+
 ---
 
 ## 🌐 API & Data Acknowledgments
