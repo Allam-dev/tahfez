@@ -482,5 +482,6 @@ abstract class  LocaleKeys {
   static const permissionDenied = 'permissionDenied';
   static const networkError = 'networkError';
   static const serverError = 'serverError';
+  static const prayForMeMessage = 'prayForMeMessage';
 
 }

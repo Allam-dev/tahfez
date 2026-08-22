@@ -477,5 +477,6 @@
   "authentication": "Authentication error",
   "permissionDenied": "Permission denied",
   "networkError": "Network error",
-  "serverError": "Server error"
+  "serverError": "Server error",
+  "prayForMeMessage": "Pray for me with a prayer you wish for yourself"
 }

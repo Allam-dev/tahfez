@@ -478,5 +478,6 @@
   "authentication": "خطأ في المصادقة",
   "permissionDenied": "تم رفض الإذن",
   "networkError": "خطأ في الشبكة",
-  "serverError": "خطأ في الخادم"
+  "serverError": "خطأ في الخادم",
+  "prayForMeMessage": "ادعُ لي بدعوة تتمناها لنفسك"
 }

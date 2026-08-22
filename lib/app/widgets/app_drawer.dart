@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:tahfez/app/localization/locale_keys.g.dart';
 import 'package:tahfez/core/extensions/context/navigation.dart';
+import 'package:tahfez/modules/donation/presentation/donation_screen.dart';
 import 'package:tahfez/modules/reader/presentation/readers/readers_screen.dart';
 
 class AppDrawer extends StatelessWidget {
@@ -86,7 +87,8 @@ class AppDrawer extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               onTap: () {
-                // TODO: implement donation action
+                Navigator.pop(context); // close drawer
+                context.push(const DonationScreen());
               },
             ),
 
