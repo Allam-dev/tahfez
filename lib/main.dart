@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:audio_session/audio_session.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -37,12 +38,19 @@ Future<void> _appInit() async {
   await SurahDownloaderBackgroundDownloaderImpl.instance.initialize();
   await SurahPlayerJustAudioImpl.init();
 
+  await _configureAudioSession();
+
   initDI();
 
   await Future.wait<dynamic>([
     ScreenUtil.ensureScreenSize(),
     EasyLocalization.ensureInitialized(),
   ]);
+}
+
+Future<void> _configureAudioSession() async {
+  final session = await AudioSession.instance;
+  await session.configure(AudioSessionConfiguration.speech());
 }
 
 void main() async {
