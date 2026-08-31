@@ -11,6 +11,11 @@ abstract class SurahDownloader {
   /// Skips surahs that are already downloaded or currently downloading.
   Future<void> downloadFullQuran(ReaderModel reader);
 
+
+  /// Downloads surahs in [startSurahNumber..endSurahNumber] for the given reader.
+  /// Skips surahs that are already downloaded or currently downloading individually.
+  Future<void> downloadRange(ReaderModel reader, int startSurahNumber, int endSurahNumber);
+
   /// Deletes a single downloaded surah file.
   Future<void> deleteSurah(ReaderModel reader, int surahNumber);
 

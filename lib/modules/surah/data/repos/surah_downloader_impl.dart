@@ -19,19 +19,19 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
   final StreamController<SurahDownloadProgress> _progressController =
       StreamController<SurahDownloadProgress>.broadcast();
 
-  /// Readers whose full-Quran download is currently in flight.
-  final Set<int> _fullQuranInProgress = {};
+  /// Readers whose batch (range / full-Quran) download is currently in flight.
+  final Set<int> _batchInProgress = {};
 
-  /// Tracks how many surahs remain for each full-Quran batch.
-  final Map<int, int> _fullQuranRemaining = {};
+  /// Tracks how many surahs remain for each batch download.
+  final Map<int, int> _batchRemaining = {};
 
-  /// Surahs currently being downloaded individually (not as part of full Quran).
+  /// Surahs currently being downloaded individually (not as part of a batch).
   /// Key = "$readerId-$surahNumber"
   final Set<String> _individualInProgress = {};
 
-  /// Tracks which tasks are part of a full-Quran batch.
-  /// Key = taskId, Value = true if part of full Quran.
-  final Map<String, bool> _taskIsFullQuran = {};
+  /// Tracks which tasks are part of a batch download.
+  /// Key = taskId, Value = true if part of a batch.
+  final Map<String, bool> _taskIsBatch = {};
 
   static final SurahDownloaderBackgroundDownloaderImpl instance =
       SurahDownloaderBackgroundDownloaderImpl._();
@@ -176,8 +176,8 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
 
   @override
   Future<void> downloadSurah(ReaderModel reader, int surahNumber) async {
-    // Block if full-Quran download is running for this reader
-    if (_fullQuranInProgress.contains(reader.id)) {
+    // Block if a batch download is running for this reader
+    if (_batchInProgress.contains(reader.id)) {
       return;
     }
 
@@ -213,32 +213,45 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
   // ──────────────────────────────────────────────────────────
 
   @override
-  Future<void> downloadFullQuran(ReaderModel reader) async {
-    if (_fullQuranInProgress.contains(reader.id)) return;
+  Future<void> downloadFullQuran(ReaderModel reader) =>
+      downloadRange(reader, 1, 114);
 
-    _fullQuranInProgress.add(reader.id);
+  @override
+  Future<void> downloadRange(
+    ReaderModel reader,
+    int startSurahNumber,
+    int endSurahNumber,
+  ) async {
+    if (_batchInProgress.contains(reader.id)) return;
 
-    final toDownload = _getSurahsToDownload(reader);
+    _batchInProgress.add(reader.id);
+
+    final toDownload =
+        _getSurahsToDownloadInRange(reader, startSurahNumber, endSurahNumber);
     if (toDownload.isEmpty) {
-      _fullQuranInProgress.remove(reader.id);
+      _batchInProgress.remove(reader.id);
       return;
     }
 
-    final tasksToEnqueue = await _prepareFullQuranTasks(reader, toDownload);
+    final tasksToEnqueue = await _prepareBatchTasks(reader, toDownload);
 
     if (tasksToEnqueue.isEmpty) {
-      _fullQuranInProgress.remove(reader.id);
-      _fullQuranRemaining.remove(reader.id);
+      _batchInProgress.remove(reader.id);
+      _batchRemaining.remove(reader.id);
       return;
     }
 
-    _fullQuranRemaining[reader.id] = tasksToEnqueue.length;
+    _batchRemaining[reader.id] = tasksToEnqueue.length;
     await FileDownloader().enqueueAll(tasksToEnqueue);
   }
 
-  List<int> _getSurahsToDownload(ReaderModel reader) {
+  List<int> _getSurahsToDownloadInRange(
+    ReaderModel reader,
+    int start,
+    int end,
+  ) {
     final toDownload = <int>[];
-    for (int i = 1; i <= 114; i++) {
+    for (int i = start; i <= end; i++) {
       final isDownloaded = QuranAudioResolver.isDownloadedSync(reader.id, i);
       final key = _surahKey(reader.id, i);
 
@@ -253,14 +266,14 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
     return toDownload;
   }
 
-  Future<List<DownloadTask>> _prepareFullQuranTasks(
+  Future<List<DownloadTask>> _prepareBatchTasks(
     ReaderModel reader,
     List<int> toDownload,
   ) async {
     final tasksToEnqueue = <DownloadTask>[];
 
     for (int i = 0; i < toDownload.length; i += _batchSize) {
-      if (!_fullQuranInProgress.contains(reader.id)) break;
+      if (!_batchInProgress.contains(reader.id)) break;
 
       final chunk = toDownload.sublist(
         i,
@@ -285,7 +298,7 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
 
     try {
       await _surahApi.getTiming(surahNumber, reader.id);
-      _taskIsFullQuran[taskId] = true;
+      _taskIsBatch[taskId] = true;
       tasksToEnqueue.add(_createTask(reader, surahNumber));
     } catch (e) {
       _notifyProgress(reader.id, surahNumber, 0.0, SurahDownloadStatus.failed);
@@ -303,8 +316,8 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
   }) async {
     final taskId = _taskId(reader.id, surahNumber);
 
-    // Track whether this task is part of full-Quran batch
-    _taskIsFullQuran[taskId] = isPartOfFullQuran;
+    // Track whether this task is part of a batch download
+    _taskIsBatch[taskId] = isPartOfFullQuran;
 
     await FileDownloader().enqueue(_createTask(reader, surahNumber));
   }
@@ -313,15 +326,15 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
     final key = _surahKey(readerId, surahNumber);
     _individualInProgress.remove(key);
 
-    final isPartOfFullQuran = _taskIsFullQuran.remove(taskId) ?? false;
+    final isPartOfBatch = _taskIsBatch.remove(taskId) ?? false;
 
-    if (isPartOfFullQuran) {
-      final remaining = (_fullQuranRemaining[readerId] ?? 1) - 1;
+    if (isPartOfBatch) {
+      final remaining = (_batchRemaining[readerId] ?? 1) - 1;
       if (remaining <= 0) {
-        _fullQuranInProgress.remove(readerId);
-        _fullQuranRemaining.remove(readerId);
+        _batchInProgress.remove(readerId);
+        _batchRemaining.remove(readerId);
       } else {
-        _fullQuranRemaining[readerId] = remaining;
+        _batchRemaining[readerId] = remaining;
       }
     }
   }
@@ -380,7 +393,7 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
 
   @override
   bool isFullQuranDownloading(int readerId) =>
-      _fullQuranInProgress.contains(readerId);
+      _batchInProgress.contains(readerId);
 
   @override
   Stream<SurahDownloadProgress> get downloadProgress =>

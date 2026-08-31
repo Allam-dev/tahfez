@@ -44,5 +44,6 @@ abstract class  LocaleKeys {
   static const signIn = 'signIn';
   static const signInFirst = 'signInFirst';
   static const somethingWentWrong = 'somethingWentWrong';
+  static const selectRewaya = 'selectRewaya';
 
 }

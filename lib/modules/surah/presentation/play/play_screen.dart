@@ -22,7 +22,7 @@ class PlayScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => PlayScreenCubit(getIt()),
+      create: (context) => PlayScreenCubit(getIt(), getIt()),
       child: BlocListener<PlayScreenCubit, PlayScreenState>(
         listener: (context, state) {
           if (state is PlayScreenFailureState) {

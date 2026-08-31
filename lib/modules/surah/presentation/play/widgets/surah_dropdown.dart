@@ -51,7 +51,8 @@ class _SurahDropdownState extends State<SurahDropdown> {
               requestFocusOnTap: true,
               initialSelection: playScreenBloc.playParams.startAya,
               dropdownMenuEntries: List.generate(
-                SUR[playScreenBloc.playParams.startSurahNumber - 1].versesCount,
+                SUR[playScreenBloc.playParams.startSurahNumber - 1]
+                    .versesCount,
                 (index) {
                   return DropdownMenuEntry<int>(
                     value: index + 1,
@@ -96,7 +97,9 @@ class _SurahDropdownState extends State<SurahDropdown> {
                 initialSelection: playScreenBloc.playParams.endSurahNumber,
                 dropdownMenuEntries: SUR
                     .skip(playScreenBloc.playParams.startSurahNumber - 1)
-                    .map((e) => DropdownMenuEntry<int>(value: e.id, label: e.name))
+                    .map(
+                      (e) => DropdownMenuEntry<int>(value: e.id, label: e.name),
+                    )
                     .toList(),
                 onSelected: (surahId) {
                   if (surahId != null) {
@@ -122,7 +125,8 @@ class _SurahDropdownState extends State<SurahDropdown> {
                           playScreenBloc.playParams.startAya,
                       (index) {
                         return DropdownMenuEntry<int>(
-                          value: index + playScreenBloc.playParams.startAya + 1,
+                          value:
+                              index + playScreenBloc.playParams.startAya + 1,
                           label:
                               (index + playScreenBloc.playParams.startAya + 1)
                                   .toString(),

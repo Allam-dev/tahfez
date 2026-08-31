@@ -42,4 +42,27 @@ class SurahPlayParams {
   set sectionRepeatCount(int count) {
     _sectionRepeatCount = max(count, 1);
   }
+
+
+  factory SurahPlayParams.fromJson(Map<String, dynamic> json) {
+    return SurahPlayParams(
+      startSurahNumber: json['startSurahNumber'] as int,
+      endSurahNumber: json['endSurahNumber'] as int,
+      reader: ReaderModel.fromApiJson(json['reader'] as Map<String, dynamic>),
+      startAya: json['startAya'] as int,
+      endAya: json['endAya'] as int,
+      ayaRepeatCount: json['ayaRepeatCount'] as int,
+      sectionRepeatCount: json['sectionRepeatCount'] as int,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'startSurahNumber': startSurahNumber,
+    'endSurahNumber': endSurahNumber,
+    'reader':reader.toJson(),
+    'startAya': startAya,
+    'endAya': endAya,
+    'ayaRepeatCount': _ayaRepeatCount,
+    'sectionRepeatCount': _sectionRepeatCount,
+  };
 }

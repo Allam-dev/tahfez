@@ -6,15 +6,20 @@ import 'package:tahfez/modules/reader/domain/models/reader_model.dart';
 class ReaderAPI {
   final Dio _dio = DioFactory.instance.dio;
 
-  Future<List<ReaderModel>> getList() async {
+  Future<Map<String,List<ReaderModel>>> getList() async {
     final response = await _dio.get(
       ReaderEndpoints.getList,
       options: Options(extra: {'reload': true}),
     );
-    List<ReaderModel> readers = [];
+    Map<String,List<ReaderModel>> readers = {};
     for (final json in response.data as List) {
       if (json['soar_count'] == 114) {
-        readers.add(ReaderModel.fromApiJson(json));
+        final reader = ReaderModel.fromApiJson(json);
+        if(readers.containsKey(reader.rewaya)){
+          readers[reader.rewaya]!.add(reader);
+        }else{
+          readers[reader.rewaya] = [reader];
+        }
       }
     }
     return readers;

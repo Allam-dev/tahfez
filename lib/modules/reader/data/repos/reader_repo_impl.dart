@@ -7,7 +7,7 @@ import '../../domain/reader_repo.dart';
 class ReaderRepoImpl implements ReaderRepo {
   final ReaderAPI _api = ReaderAPI();
   @override
-  Future<Either<Failure, List<ReaderModel>>> getList() async {
+  Future<Either<Failure, Map<String,List<ReaderModel>>>> getList() async {
     try {
       final result = await _api.getList();
       return Right(result);

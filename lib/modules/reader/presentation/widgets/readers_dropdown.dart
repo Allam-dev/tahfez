@@ -17,52 +17,86 @@ class ReadersDropdown extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => ReadersDropdownCubit(getIt())..getList(),
-      child: BlocBuilder<ReadersDropdownCubit, ReadersDropdownState>(
-        builder: (context, state) {
-          if (state is ReadersDropdownLoadedState) {
-            return AppDropdownMenu<ReaderModel>(
-              menuHeight: 300.h,
-              expandedInsets: EdgeInsets.zero,
-              enableFilter: true,
-              requestFocusOnTap: true,
-              label: Text(context.tr(LocaleKeys.selectReader)),
-              dropdownMenuEntries: state.readers
-                  .map(
-                    (r) => DropdownMenuEntry<ReaderModel>(
-                      value: r,
-                      label: r.nameWithRewaya,
+      child: Column(
+        children: [
+          BlocBuilder<ReadersDropdownCubit, ReadersDropdownState>(
+            buildWhen: (previous, current) =>
+                current is! ReadersDropdownRewayaChangedState,
+            builder: (context, state) {
+              if (state is ReadersDropdownLoadedState) {
+                return AppDropdownMenu<String>(
+                  menuHeight: 300.h,
+                  expandedInsets: EdgeInsets.zero,
+                  enableFilter: true,
+                  requestFocusOnTap: true,
+                  initialSelection: state.rewayat.first,
+                  label: Text(context.tr(LocaleKeys.selectRewaya)),
+                  dropdownMenuEntries: state.rewayat
+                      .map((r) => DropdownMenuEntry<String>(value: r, label: r))
+                      .toList(),
+                  onSelected: context.read<ReadersDropdownCubit>().changeRewaya,
+                );
+              } else if (state is ReadersDropdownFailureState) {
+                return _ErrorRetry(
+                  message: context.tr(LocaleKeys.somethingWentWrong),
+                  onRetry: context.read<ReadersDropdownCubit>().getList,
+                );
+              } else {
+                return AbsorbPointer(
+                  child: DropdownMenu<ReaderModel>(
+                    expandedInsets: EdgeInsets.zero,
+
+                    enabled: false,
+                    hintText: context.tr(LocaleKeys.loading),
+                    trailingIcon: const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: Padding(
+                        padding: EdgeInsets.all(2),
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
                     ),
-                  )
-                  .toList(),
-              onSelected: (value) {
-                if (value != null) {
-                  onChanged?.call(value);
-                }
-              },
-            );
-          } else if (state is ReadersDropdownFailureState) {
-            return _ErrorRetry(
-              message: context.tr(LocaleKeys.somethingWentWrong),
-              onRetry: context.read<ReadersDropdownCubit>().getList,
-            );
-          } else {
-            return AbsorbPointer(
-              child: DropdownMenu<ReaderModel>(
-                enabled: false,
-                hintText: context.tr(LocaleKeys.loading),
-                trailingIcon: const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: Padding(
-                    padding: EdgeInsets.all(2),
-                    child: CircularProgressIndicator(strokeWidth: 2),
+                    dropdownMenuEntries: const [],
                   ),
-                ),
-                dropdownMenuEntries: const [],
-              ),
-            );
-          }
-        },
+                );
+              }
+            },
+          ),
+          30.verticalSpace,
+          BlocBuilder<ReadersDropdownCubit, ReadersDropdownState>(
+            buildWhen: (previous, current) =>
+                current is ReadersDropdownRewayaChangedState,
+            builder: (context, state) {
+              if (state is! ReadersDropdownRewayaChangedState) {
+                return const SizedBox.shrink();
+              }
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                onChanged?.call(state.readers.first);
+              });
+              return AppDropdownMenu<ReaderModel>(
+                menuHeight: 300.h,
+                expandedInsets: EdgeInsets.zero,
+                initialSelection: state.readers.first,
+                enableFilter: true,
+                requestFocusOnTap: true,
+                label: Text(context.tr(LocaleKeys.selectReader)),
+                dropdownMenuEntries: state.readers
+                    .map(
+                      (r) => DropdownMenuEntry<ReaderModel>(
+                        value: r,
+                        label: r.name,
+                      ),
+                    )
+                    .toList(),
+                onSelected: (value) {
+                  if (value != null) {
+                    onChanged?.call(value);
+                  }
+                },
+              );
+            },
+          ),
+        ],
       ),
     );
   }

@@ -6,7 +6,7 @@
 
 Designed to help Muslims around the globe memorize (Hifz) and retain the Holy Quran effortlessly through intelligent, custom audio repetition workflows.
 
-[![Get it on Google Play](https://img.shields.io/badge/Google_Play-Download_App-410099?style=for-the-badge&logo=google-play&logoColor=white)](https://play.google.com/store/apps/details?id=tahfez.allam.labs)
+[<img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="80">](https://play.google.com/store/apps/details?id=tahfez.allam.labs)
 
 ---
 

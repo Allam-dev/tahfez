@@ -73,13 +73,13 @@ class ReadersScreenCubit extends Cubit<ReadersScreenState> {
       (failure) async => emit(ReadersScreenFailureState(failure)),
       (readers) async {
         // Pre-load downloaded counts for each reader
-        for (final reader in readers) {
+        for (final reader in readers.values.first) {
           final downloaded = await _surahDownloader.getDownloadedSurahs(reader);
           _downloadedCounts[reader.id] = downloaded.length;
         }
         emit(
           ReadersScreenLoadedState(
-            readers: readers,
+            readers: readers.values.first,
             downloadedCounts: Map.from(_downloadedCounts),
             activeProgress: Map.from(_activeProgress),
           ),
