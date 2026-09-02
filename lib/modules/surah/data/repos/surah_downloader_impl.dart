@@ -6,6 +6,7 @@ import 'package:tahfez/modules/reader/domain/models/reader_model.dart';
 import 'package:tahfez/modules/surah/data/data_sources/api/surah_api.dart';
 import 'package:tahfez/modules/surah/domain/enums/surah_download_status.dart';
 import 'package:tahfez/modules/surah/domain/models/surah_download_progress.dart';
+import 'package:tahfez/modules/surah/domain/models/surah_model.dart';
 import 'package:tahfez/modules/surah/domain/repos/surah_downloader.dart';
 
 import 'package:tahfez/modules/surah/domain/utils/quran_audio_resolver.dart';
@@ -37,7 +38,7 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
       SurahDownloaderBackgroundDownloaderImpl._();
 
   SurahDownloaderBackgroundDownloaderImpl._({SurahAPI? surahApi})
-      : _surahApi = surahApi ?? SurahAPI();
+    : _surahApi = surahApi ?? SurahAPI();
 
   // ──────────────────────────────────────────────────────────
   // Initialization — MUST be called before FileDownloader().start()
@@ -67,9 +68,9 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
 
     // Configure notifications for download tasks
     FileDownloader().configureNotification(
-      running: const TaskNotification('جاري تحميل القرآن', '{filename}'),
-      complete: const TaskNotification('اكتمل التحميل', '{filename}'),
-      error: const TaskNotification('فشل التحميل', '{filename}'),
+      running: const TaskNotification('جاري تحميل {displayName}', '{metaData}'),
+      complete: const TaskNotification('اكتمل التحميل {displayName}', '{metaData}'),
+      error: const TaskNotification('فشل التحميل {displayName}', '{metaData}'),
       progressBar: true,
     );
 
@@ -103,7 +104,12 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
     int surahNumber,
   ) {
     if (update.status == TaskStatus.complete) {
-      _notifyProgress(readerId, surahNumber, 1.0, SurahDownloadStatus.completed);
+      _notifyProgress(
+        readerId,
+        surahNumber,
+        1.0,
+        SurahDownloadStatus.completed,
+      );
       _onDownloadFinished(readerId, surahNumber, update.task.taskId);
     } else if (update.status == TaskStatus.failed ||
         update.status == TaskStatus.notFound ||
@@ -147,6 +153,8 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
       requiresWiFi: false,
       retries: 5,
       allowPause: true,
+      displayName: SUR[surahNumber - 1].name,
+      metaData: '${reader.name} - ${reader.rewaya}',
     );
   }
 
@@ -189,7 +197,12 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
     if (_individualInProgress.contains(key)) return;
     _individualInProgress.add(key);
 
-    _notifyProgress(reader.id, surahNumber, 0.0, SurahDownloadStatus.downloading);
+    _notifyProgress(
+      reader.id,
+      surahNumber,
+      0.0,
+      SurahDownloadStatus.downloading,
+    );
 
     // Step 1: Fetch and cache surah timing data
     try {
@@ -226,8 +239,11 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
 
     _batchInProgress.add(reader.id);
 
-    final toDownload =
-        _getSurahsToDownloadInRange(reader, startSurahNumber, endSurahNumber);
+    final toDownload = _getSurahsToDownloadInRange(
+      reader,
+      startSurahNumber,
+      endSurahNumber,
+    );
     if (toDownload.isEmpty) {
       _batchInProgress.remove(reader.id);
       return;
@@ -281,7 +297,10 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
       );
 
       await Future.wait(
-        chunk.map((surahNumber) => _processBatchSurah(reader, surahNumber, tasksToEnqueue)),
+        chunk.map(
+          (surahNumber) =>
+              _processBatchSurah(reader, surahNumber, tasksToEnqueue),
+        ),
       );
     }
 
@@ -293,7 +312,12 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
     int surahNumber,
     List<DownloadTask> tasksToEnqueue,
   ) async {
-    _notifyProgress(reader.id, surahNumber, 0.0, SurahDownloadStatus.downloading);
+    _notifyProgress(
+      reader.id,
+      surahNumber,
+      0.0,
+      SurahDownloadStatus.downloading,
+    );
     final taskId = _taskId(reader.id, surahNumber);
 
     try {

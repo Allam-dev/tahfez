@@ -1,4 +1,4 @@
-cache last  plyaing settings
+cache selected reader
 
 autodownload (downloads screen for what already downloaded)
 
