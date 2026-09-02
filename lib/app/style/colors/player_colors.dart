@@ -22,19 +22,19 @@ class PlayerColors extends ThemeExtension<PlayerColors> {
 
   static const light = PlayerColors(
     progressTrack: AppColors.sand200,
-    progressFill: AppColors.teal500,
-    waveformIdle: AppColors.teal100,
-    waveformActive: AppColors.gold500,
+    progressFill: AppColors.green500,
+    waveformIdle: AppColors.green100,
+    waveformActive: AppColors.green500,
     nowPlayingBg: AppColors.sand100,
-    nowPlayingBorder: AppColors.teal100,
+    nowPlayingBorder: AppColors.green100,
   );
 
   static const dark = PlayerColors(
     progressTrack: AppColors.night600,
-    progressFill: AppColors.teal300,
+    progressFill: AppColors.green400,
     waveformIdle: AppColors.night600,
-    waveformActive: AppColors.gold300,
-    nowPlayingBg: AppColors.night700,
+    waveformActive: AppColors.green300,
+    nowPlayingBg: AppColors.night800,
     nowPlayingBorder: AppColors.night600,
   );
 
