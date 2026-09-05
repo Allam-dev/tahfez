@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:tahfez/app/localization/locale_keys.g.dart';
+import 'package:tahfez/app/style/colors/app_colors.dart';
 import 'package:tahfez/app/widgets/app_dropdown_menu.dart';
 import 'package:tahfez/core/di/main_di.dart';
 import 'package:tahfez/modules/reader/domain/models/reader_model.dart';
@@ -18,34 +19,38 @@ class ReadersDropdown extends StatelessWidget {
     return BlocProvider(
       create: (context) => ReadersDropdownCubit(getIt())..getList(),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // 1. اختر القراءة
+          _buildSectionTitle(context, '1', LocaleKeys.selectQiraah),
+          8.verticalSpace,
+
           BlocBuilder<ReadersDropdownCubit, ReadersDropdownState>(
             buildWhen: (previous, current) =>
-                current is! ReadersDropdownRewayaChangedState,
+                current.status != ReadersDropdownStatus.readerChanged &&
+                current.status != ReadersDropdownStatus.rewayaChanged,
             builder: (context, state) {
-              if (state is ReadersDropdownLoadedState) {
+              if (state.status == ReadersDropdownStatus.loaded) {
                 return AppDropdownMenu<String>(
                   menuHeight: 300.h,
                   expandedInsets: EdgeInsets.zero,
                   enableFilter: true,
                   requestFocusOnTap: true,
-                  initialSelection: state.rewayat.first,
-                  label: Text(context.tr(LocaleKeys.selectRewaya)),
+                  initialSelection: state.selectedRewaya,
                   dropdownMenuEntries: state.rewayat
                       .map((r) => DropdownMenuEntry<String>(value: r, label: r))
                       .toList(),
                   onSelected: context.read<ReadersDropdownCubit>().changeRewaya,
                 );
-              } else if (state is ReadersDropdownFailureState) {
+              } else if (state.status == ReadersDropdownStatus.error) {
                 return _ErrorRetry(
                   message: context.tr(LocaleKeys.somethingWentWrong),
                   onRetry: context.read<ReadersDropdownCubit>().getList,
                 );
               } else {
                 return AbsorbPointer(
-                  child: DropdownMenu<ReaderModel>(
+                  child: DropdownMenu<String>(
                     expandedInsets: EdgeInsets.zero,
-
                     enabled: false,
                     hintText: context.tr(LocaleKeys.loading),
                     trailingIcon: const SizedBox(
@@ -62,25 +67,36 @@ class ReadersDropdown extends StatelessWidget {
               }
             },
           ),
-          30.verticalSpace,
+
+          24.verticalSpace,
+          // 2. اختر الشيخ
+          _buildSectionTitle(context, '2', LocaleKeys.selectSheikh),
+          8.verticalSpace,
+
           BlocBuilder<ReadersDropdownCubit, ReadersDropdownState>(
             buildWhen: (previous, current) =>
-                current is ReadersDropdownRewayaChangedState,
+                current.status != ReadersDropdownStatus.readerChanged,
             builder: (context, state) {
-              if (state is! ReadersDropdownRewayaChangedState) {
-                return const SizedBox.shrink();
+              if (state.selectedReader == null) {
+                return AbsorbPointer(
+                  child: DropdownMenu<ReaderModel>(
+                    expandedInsets: EdgeInsets.zero,
+                    enabled: false,
+                    hintText: context.tr(LocaleKeys.loading),
+                    dropdownMenuEntries: const [],
+                  ),
+                );
               }
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                onChanged?.call(state.readers.first);
+                onChanged?.call(state.selectedReader!);
               });
               return AppDropdownMenu<ReaderModel>(
                 menuHeight: 300.h,
                 expandedInsets: EdgeInsets.zero,
-                initialSelection: state.readers.first,
+                initialSelection: state.selectedReader,
                 enableFilter: true,
                 requestFocusOnTap: true,
-                label: Text(context.tr(LocaleKeys.selectReader)),
-                dropdownMenuEntries: state.readers
+                dropdownMenuEntries: state.readersList
                     .map(
                       (r) => DropdownMenuEntry<ReaderModel>(
                         value: r,
@@ -90,6 +106,7 @@ class ReadersDropdown extends StatelessWidget {
                     .toList(),
                 onSelected: (value) {
                   if (value != null) {
+                    context.read<ReadersDropdownCubit>().changeReader(value);
                     onChanged?.call(value);
                   }
                 },
@@ -97,6 +114,17 @@ class ReadersDropdown extends StatelessWidget {
             },
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(BuildContext context, String number, String key) {
+    return Text(
+      '$number. ${context.tr(key)}',
+      style: TextStyle(
+        fontSize: 16.sp,
+        fontWeight: FontWeight.bold,
+        color: AppColors.green600,
       ),
     );
   }

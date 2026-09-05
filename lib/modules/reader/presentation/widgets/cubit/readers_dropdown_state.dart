@@ -1,26 +1,51 @@
 part of 'readers_dropdown_cubit.dart';
 
+enum ReadersDropdownStatus {
+  initial,
+  loading,
+  loaded,
+  error,
+  rewayaChanged,
+  readerChanged,
+}
+
 @immutable
-sealed class ReadersDropdownState {}
+class ReadersDropdownState {
+  final ReadersDropdownStatus status;
 
-final class ReadersDropdownInitialState extends ReadersDropdownState {}
-
-final class ReadersDropdownLoadingState extends ReadersDropdownState {}
-
-final class ReadersDropdownLoadedState extends ReadersDropdownState {
   final List<String> rewayat;
+  final Map<String, List<ReaderModel>> readersMap;
+  final Failure? failure;
 
-  ReadersDropdownLoadedState(this.rewayat);
-}
+  final ReaderModel? selectedReader;
+  final String? selectedRewaya;
 
-final class ReadersDropdownRewayaChangedState extends ReadersDropdownState {
-  final List<ReaderModel> readers;
+  const ReadersDropdownState({
+    this.status = ReadersDropdownStatus.initial,
+    this.rewayat = const [],
+    this.readersMap = const {},
+    this.failure,
+    this.selectedReader,
+    this.selectedRewaya,
+  });
 
-  ReadersDropdownRewayaChangedState(this.readers);
-}
+  ReadersDropdownState copyWith({
+    ReadersDropdownStatus? status,
+    List<String>? rewayat,
+    Map<String, List<ReaderModel>>? readersMap,
+    Failure? failure,
+    ReaderModel? selectedReader,
+    String? selectedRewaya,
+  }) {
+    return ReadersDropdownState(
+      status: status ?? this.status,
+      rewayat: rewayat ?? this.rewayat,
+      readersMap: readersMap ?? this.readersMap,
+      failure: failure ?? this.failure,
+      selectedReader: selectedReader ?? this.selectedReader,
+      selectedRewaya: selectedRewaya ?? this.selectedRewaya,
+    );
+  }
 
-final class ReadersDropdownFailureState extends ReadersDropdownState {
-  final Failure failure;
-
-  ReadersDropdownFailureState(this.failure);
+  List<ReaderModel> get readersList => readersMap[selectedRewaya] ?? [];
 }

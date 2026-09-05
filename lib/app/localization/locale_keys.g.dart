@@ -45,5 +45,21 @@ abstract class  LocaleKeys {
   static const signInFirst = 'signInFirst';
   static const somethingWentWrong = 'somethingWentWrong';
   static const selectRewaya = 'selectRewaya';
-
+  static const selectQiraah = 'selectQiraah';
+  static const qiraah = 'qiraah';
+  static const selectSheikh = 'selectSheikh';
+  static const sheikh = 'sheikh';
+  static const ayahRange = 'ayahRange';
+  static const fromSurah = 'fromSurah';
+  static const toSurah = 'toSurah';
+  static const ayah = 'ayah';
+  static const repeatSettings = 'repeatSettings';
+  static const repeatEachAyah = 'repeatEachAyah';
+  static const repeatWholeSection = 'repeatWholeSection';
+  static const options = 'options';
+  static const playAudio = 'playAudio';
+  static const downloadWhilePlaying = 'downloadWhilePlaying';
+  static const downloadOnly = 'downloadOnly';
+  static const start = 'start';
 }
+

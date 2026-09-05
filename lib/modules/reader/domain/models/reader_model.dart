@@ -1,9 +1,11 @@
-class ReaderModel {
+import 'package:equatable/equatable.dart';
+
+class ReaderModel extends Equatable {
   final int id;
   final String name;
   final String rewaya;
   final String downloadUrl;
-  ReaderModel({
+  const ReaderModel({
     required this.id,
     required this.name,
     required this.rewaya,
@@ -34,4 +36,7 @@ class ReaderModel {
     'rewaya': rewaya,
     'folder_url': downloadUrl,
   };
+
+  @override
+  List<Object?> get props => [id];
 }

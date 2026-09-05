@@ -55,6 +55,7 @@ dependencies:
   font_awesome_flutter: ^11.0.0
   permission_handler: ^12.0.1
   audio_session: ^0.2.4
+  equatable: ^2.1.0
 
 dev_dependencies:
   flutter_test:

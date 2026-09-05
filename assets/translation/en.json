@@ -40,5 +40,21 @@
   "signIn": "Sign in",
   "signInFirst": "Please sign in first",
   "somethingWentWrong": "Something went wrong",
-  "selectRewaya":"Select Rewaya"
+  "selectRewaya": "Select Rewaya",
+  "selectQiraah": "Select Recitation",
+  "qiraah": "Recitation",
+  "selectSheikh": "Select Sheikh",
+  "sheikh": "Sheikh",
+  "ayahRange": "Ayah Range",
+  "fromSurah": "From Surah",
+  "toSurah": "To Surah",
+  "ayah": "Ayah",
+  "repeatSettings": "Repeat Settings",
+  "repeatEachAyah": "Repeat each Ayah",
+  "repeatWholeSection": "Repeat whole section",
+  "options": "Options",
+  "playAudio": "Play Audio",
+  "downloadWhilePlaying": "Download while playing",
+  "downloadOnly": "Download only (without playing)",
+  "start": "Start"
 }

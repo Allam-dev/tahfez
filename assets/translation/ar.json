@@ -40,5 +40,21 @@
   "signIn": "سجل دخولك",
   "signInFirst": "يرجى تسجيل الدخول أولا",
   "somethingWentWrong": "حدث خطأ ما",
-  "selectRewaya":"اختر روايه"
+  "selectRewaya": "اختر روايه",
+  "selectQiraah": "اختر القراءة",
+  "qiraah": "القراءة",
+  "selectSheikh": "اختر الشيخ",
+  "sheikh": "الشيخ",
+  "ayahRange": "نطاق الآيات",
+  "fromSurah": "من سورة",
+  "toSurah": "إلى سورة",
+  "ayah": "الآية",
+  "repeatSettings": "إعدادات التكرار",
+  "repeatEachAyah": "تكرار كل آية",
+  "repeatWholeSection": "تكرار هذا المقطع كاملًا",
+  "options": "الخيارات",
+  "playAudio": "تشغيل الصوت",
+  "downloadWhilePlaying": "تحميل أثناء التشغيل",
+  "downloadOnly": "تحميل فقط (بدون تشغيل)",
+  "start": "بدء"
 }
