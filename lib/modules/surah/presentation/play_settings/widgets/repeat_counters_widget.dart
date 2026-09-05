@@ -1,17 +1,16 @@
-part of '../play_screen.dart';
+part of '../play_settings_screen.dart';
 
-class SurahRepeatCounterWidget extends StatefulWidget {
-  const SurahRepeatCounterWidget({super.key});
+class _RepeatCountersWidget extends StatefulWidget {
+  const _RepeatCountersWidget();
 
   @override
-  State<SurahRepeatCounterWidget> createState() =>
-      _SurahRepeatCounterWidgetState();
+  State<_RepeatCountersWidget> createState() => _RepeatCountersWidgetState();
 }
 
-class _SurahRepeatCounterWidgetState extends State<SurahRepeatCounterWidget> {
+class _RepeatCountersWidgetState extends State<_RepeatCountersWidget> {
   @override
   Widget build(BuildContext context) {
-    final playScreenBloc = context.read<PlayScreenCubit>();
+    final playSettingsScreenCubit = context.read<PlaySettingsScreenCubit>();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -38,20 +37,22 @@ class _SurahRepeatCounterWidgetState extends State<SurahRepeatCounterWidget> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildCounterControls(
-                    count: playScreenBloc.playParams.ayaRepeatCount,
-                    onDecrement: () {
-                      if (playScreenBloc.playParams.ayaRepeatCount > 1) {
-                        setState(() {
-                          playScreenBloc.playParams.ayaRepeatCount--;
-                        });
-                      }
+                  _buildCounterBtn(
+                    icon: Icons.remove,
+                    onTap: playSettingsScreenCubit.decrementAyaRepetition,
+                  ),
+                  BlocBuilder<PlaySettingsScreenCubit, PlaySettingsScreenState>(
+                    buildWhen: (previous, current) =>
+                        current.status == PlaySettingsScreenStatus.ayaRepetitionChanged,
+                    builder: (context, state) {
+                      return _counterText(
+                        count: state.playParams.ayaRepeatCount,
+                      );
                     },
-                    onIncrement: () {
-                      setState(() {
-                        playScreenBloc.playParams.ayaRepeatCount++;
-                      });
-                    },
+                  ),
+                  _buildCounterBtn(
+                    icon: Icons.add,
+                    onTap: playSettingsScreenCubit.incrementAyaRepetition,
                   ),
                   Expanded(
                     child: Text(
@@ -71,20 +72,23 @@ class _SurahRepeatCounterWidgetState extends State<SurahRepeatCounterWidget> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildCounterControls(
-                    count: playScreenBloc.playParams.sectionRepeatCount,
-                    onDecrement: () {
-                      if (playScreenBloc.playParams.sectionRepeatCount > 1) {
-                        setState(() {
-                          playScreenBloc.playParams.sectionRepeatCount--;
-                        });
-                      }
+                  _buildCounterBtn(
+                    icon: Icons.remove,
+                    onTap: playSettingsScreenCubit.decrementSectionRepetition,
+                  ),
+                  BlocBuilder<PlaySettingsScreenCubit, PlaySettingsScreenState>(
+                    buildWhen: (previous, current) =>
+                        current.status ==
+                        PlaySettingsScreenStatus.sectionRepetitionChanged,
+                    builder: (context, state) {
+                      return _counterText(
+                        count: state.playParams.sectionRepeatCount,
+                      );
                     },
-                    onIncrement: () {
-                      setState(() {
-                        playScreenBloc.playParams.sectionRepeatCount++;
-                      });
-                    },
+                  ),
+                  _buildCounterBtn(
+                    icon: Icons.add,
+                    onTap: playSettingsScreenCubit.incrementSectionRepetition,
                   ),
                   Expanded(
                     child: Text(
@@ -106,29 +110,18 @@ class _SurahRepeatCounterWidgetState extends State<SurahRepeatCounterWidget> {
     );
   }
 
-  Widget _buildCounterControls({
-    required int count,
-    required VoidCallback onDecrement,
-    required VoidCallback onIncrement,
-  }) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _buildCounterBtn(icon: Icons.remove, onTap: onDecrement),
-        SizedBox(
-          width: 36.w,
-          child: Text(
-            count.toString(),
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 16.sp,
-              fontWeight: FontWeight.bold,
-              color: AppColors.inkLight,
-            ),
-          ),
+  Widget _counterText({required int count}) {
+    return SizedBox(
+      width: 36.w,
+      child: Text(
+        count.toString(),
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: 16.sp,
+          fontWeight: FontWeight.bold,
+          color: AppColors.inkLight,
         ),
-        _buildCounterBtn(icon: Icons.add, onTap: onIncrement),
-      ],
+      ),
     );
   }
 

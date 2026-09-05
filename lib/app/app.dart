@@ -5,7 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:tahfez/modules/surah/presentation/play/play_screen.dart';
+import 'package:tahfez/modules/surah/presentation/play_settings/play_settings_screen.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -26,7 +26,7 @@ class App extends StatelessWidget {
                 themeMode: state,
                 theme: LIGHT_THEME,
                 darkTheme: DARK_THEME,
-                home: PlayScreen(),
+                home: PlaySettingsScreen(),
               ),
             );
           },

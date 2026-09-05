@@ -21,7 +21,7 @@ class ReaderModel extends Equatable {
     );
   }
 
-  factory ReaderModel.fake() => ReaderModel(
+ factory ReaderModel.fake() => const ReaderModel(
     id: 0,
     name: 'name',
     rewaya: 'rewaya',
