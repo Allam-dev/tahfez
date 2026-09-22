@@ -45,6 +45,7 @@ abstract class  LocaleKeys {
   static const signInFirst = 'signInFirst';
   static const somethingWentWrong = 'somethingWentWrong';
   static const selectRewaya = 'selectRewaya';
+  static const poweredBy = 'poweredBy';
   static const selectQiraah = 'selectQiraah';
   static const qiraah = 'qiraah';
   static const selectSheikh = 'selectSheikh';
@@ -61,5 +62,5 @@ abstract class  LocaleKeys {
   static const downloadWhilePlaying = 'downloadWhilePlaying';
   static const downloadOnly = 'downloadOnly';
   static const start = 'start';
-}
 
+}

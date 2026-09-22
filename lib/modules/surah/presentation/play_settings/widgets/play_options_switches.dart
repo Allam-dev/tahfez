@@ -7,6 +7,7 @@ class _PlayOptionsSwitch extends StatelessWidget {
   Widget build(BuildContext context) {
     final playSettingsScreenCubit = context.read<PlaySettingsScreenCubit>();
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           '5. ${context.tr(LocaleKeys.options)}',

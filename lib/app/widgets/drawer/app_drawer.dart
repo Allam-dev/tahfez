@@ -5,9 +5,11 @@ import 'package:tahfez/app/assets/assets.dart';
 import 'package:tahfez/app/localization/locale_keys.g.dart';
 import 'package:tahfez/app/widgets/drawer/share_app_tile.dart';
 import 'package:tahfez/app/widgets/drawer/social_links_row.dart';
+import 'package:tahfez/core/constants/app_links.dart';
 import 'package:tahfez/core/extensions/context/navigation.dart';
 import 'package:tahfez/core/extensions/context/theme.dart';
 import 'package:tahfez/core/extensions/locale/language_name.dart';
+import 'package:tahfez/core/services/url_lancher/url_lancher_service.dart';
 import 'package:tahfez/modules/donation/presentation/donation_screen.dart';
 import 'package:tahfez/modules/reader/presentation/readers/readers_screen.dart';
 
@@ -68,7 +70,10 @@ class AppDrawer extends StatelessWidget {
                       ),
                       title: Text(
                         context.tr(LocaleKeys.downloads),
-                        style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w500),
+                        style: TextStyle(
+                          fontSize: 15.sp,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -87,7 +92,10 @@ class AppDrawer extends StatelessWidget {
                       ),
                       title: Text(
                         context.tr(LocaleKeys.donation),
-                        style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w500),
+                        style: TextStyle(
+                          fontSize: 15.sp,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -117,7 +125,9 @@ class AppDrawer extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       child: DropdownMenu(
                         dropdownMenuEntries: context.supportedLocales
-                            .map((e) => DropdownMenuEntry(value: e, label: e.name))
+                            .map(
+                              (e) => DropdownMenuEntry(value: e, label: e.name),
+                            )
                             .toList(),
                         initialSelection: context.locale,
                         expandedInsets: EdgeInsets.zero,
@@ -137,6 +147,11 @@ class AppDrawer extends StatelessWidget {
             Padding(
               padding: EdgeInsets.symmetric(vertical: 16.h),
               child: const SocialLinksRow(),
+            ),
+
+            InkWell(
+              onTap: () => UrlLauncherService.launch(AppLinks.mp3quran),
+              child: Image.asset(IconsAssets.mp3quran, width: 150.w),
             ),
           ],
         ),
