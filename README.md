@@ -136,9 +136,15 @@ The repository includes utility scripts in the `scripts/` directory to automate 
 
 ## 🌐 API & Data Acknowledgments
 
-Tahfez relies on audio recitations and Quranic meta-data served by:
+Tahfez relies on audio recitations and Quranic meta-data served by **[MP3Quran](https://mp3quran.net/)**.
 
-* **[MP3Quran API](https://www.mp3quran.net/ar/api)** (`https://www.mp3quran.net/api/v3/`)
+<p align="center">
+  <a href="https://mp3quran.net/">
+    <img src="./assets/icons/mp3quran.png" alt="MP3Quran Logo" height="70" />
+  </a>
+</p>
+
+* **[MP3Quran API](https://mp3quran.net/)** (`https://www.mp3quran.net/api/v3/`) — Provides audio recitations, reciter libraries, and Quranic metadata.
 
 We express our sincere gratitude to the MP3Quran team for providing free, high-quality Quranic recitations to the global Muslim developer community.
 
