@@ -4,11 +4,15 @@ import 'package:tahfez/core/error/failure.dart';
 import 'package:tahfez/modules/reader/domain/models/reader_model.dart';
 import 'package:tahfez/modules/surah/domain/models/surah_model.dart';
 import 'package:tahfez/modules/surah/domain/params/surah_play_params.dart';
+import 'package:tahfez/modules/surah/domain/repos/surah_downloader.dart';
+import 'package:tahfez/modules/surah/domain/surah_player.dart';
 
 part 'play_settings_screen_state.dart';
 
 class PlaySettingsScreenCubit extends HydratedCubit<PlaySettingsScreenState> {
-  PlaySettingsScreenCubit()
+  final SurahPlayer _player;
+  final SurahDownloader _downloader;
+  PlaySettingsScreenCubit(this._player, this._downloader)
     : super(
         PlaySettingsScreenState(
           playParams: SurahPlayParams(
@@ -109,19 +113,67 @@ class PlaySettingsScreenCubit extends HydratedCubit<PlaySettingsScreenState> {
   void decrementAyaRepetition() {
     if (state.playParams.ayaRepeatCount > 1) {
       state.playParams.ayaRepeatCount--;
-      emit(state.copyWith(status: PlaySettingsScreenStatus.ayaRepetitionChanged));
+      emit(
+        state.copyWith(status: PlaySettingsScreenStatus.ayaRepetitionChanged),
+      );
     }
   }
 
   void incrementSectionRepetition() {
     state.playParams.sectionRepeatCount++;
-    emit(state.copyWith(status: PlaySettingsScreenStatus.sectionRepetitionChanged));
+    emit(
+      state.copyWith(status: PlaySettingsScreenStatus.sectionRepetitionChanged),
+    );
   }
 
   void decrementSectionRepetition() {
     if (state.playParams.sectionRepeatCount > 1) {
       state.playParams.sectionRepeatCount--;
-      emit(state.copyWith(status: PlaySettingsScreenStatus.sectionRepetitionChanged));
+      emit(
+        state.copyWith(
+          status: PlaySettingsScreenStatus.sectionRepetitionChanged,
+        ),
+      );
+    }
+  }
+
+  void start() {
+    if (state.playAudio) {
+      _play();
+    }
+
+    if (state.downloadWhilePlaying || state.downloadingOnly) {
+      _download();
+    }
+  }
+
+  void _play() {
+    try {
+      _player.start(state.playParams);
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: PlaySettingsScreenStatus.error,
+          failure: Failure.fromException(e),
+        ),
+      );
+    }
+  }
+
+  void _download() {
+    try {
+      _downloader.downloadRange(
+        state.playParams.reader,
+        state.playParams.startSurahNumber,
+        state.playParams.endSurahNumber,
+      );
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: PlaySettingsScreenStatus.error,
+          failure: Failure.fromException(e),
+        ),
+      );
     }
   }
 

@@ -8,7 +8,7 @@ class _StartButton extends StatelessWidget {
     return BlocBuilder<PlaySettingsScreenCubit, PlaySettingsScreenState>(
       builder: (context, state) {
         return ElevatedButton(
-          onPressed: () {},
+          onPressed: () => context.read<PlaySettingsScreenCubit>().start(),
           child: Text(context.tr(LocaleKeys.start)),
         );
       },

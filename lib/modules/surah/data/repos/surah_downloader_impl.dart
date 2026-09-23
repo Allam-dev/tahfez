@@ -20,15 +20,12 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
   final StreamController<SurahDownloadProgress> _progressController =
       StreamController<SurahDownloadProgress>.broadcast();
 
-  /// Readers whose batch (range / full-Quran) download is currently in flight.
-  final Set<int> _batchInProgress = {};
-
-  /// Tracks how many surahs remain for each batch download.
-  final Map<int, int> _batchRemaining = {};
-
-  /// Surahs currently being downloaded individually (not as part of a batch).
+  /// Tracks all surahs currently in flight (queued or downloading).
   /// Key = "$readerId-$surahNumber"
-  final Set<String> _individualInProgress = {};
+  final Set<String> _activeSurahs = {};
+
+  /// Tracks how many surahs remain for each batch download per reader.
+  final Map<int, int> _batchRemaining = {};
 
   /// Tracks which tasks are part of a batch download.
   /// Key = taskId, Value = true if part of a batch.
@@ -184,18 +181,13 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
 
   @override
   Future<void> downloadSurah(ReaderModel reader, int surahNumber) async {
-    // Block if a batch download is running for this reader
-    if (_batchInProgress.contains(reader.id)) {
-      return;
-    }
-
     // Skip if already downloaded
     if (QuranAudioResolver.isDownloadedSync(reader.id, surahNumber)) return;
 
-    // Skip if already downloading individually
+    // Skip if already downloading
     final key = _surahKey(reader.id, surahNumber);
-    if (_individualInProgress.contains(key)) return;
-    _individualInProgress.add(key);
+    if (_activeSurahs.contains(key)) return;
+    _activeSurahs.add(key);
 
     _notifyProgress(
       reader.id,
@@ -208,7 +200,7 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
     try {
       await _surahApi.getTiming(surahNumber, reader.id);
     } catch (e) {
-      _individualInProgress.remove(key);
+      _activeSurahs.remove(key);
       _notifyProgress(reader.id, surahNumber, 0.0, SurahDownloadStatus.failed);
       return;
     }
@@ -235,29 +227,24 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
     int startSurahNumber,
     int endSurahNumber,
   ) async {
-    if (_batchInProgress.contains(reader.id)) return;
-
-    _batchInProgress.add(reader.id);
-
     final toDownload = _getSurahsToDownloadInRange(
       reader,
       startSurahNumber,
       endSurahNumber,
     );
-    if (toDownload.isEmpty) {
-      _batchInProgress.remove(reader.id);
-      return;
+    if (toDownload.isEmpty) return;
+
+    // Mark surahs as active immediately to prevent duplicate requests
+    for (final surahNumber in toDownload) {
+      _activeSurahs.add(_surahKey(reader.id, surahNumber));
     }
 
     final tasksToEnqueue = await _prepareBatchTasks(reader, toDownload);
 
-    if (tasksToEnqueue.isEmpty) {
-      _batchInProgress.remove(reader.id);
-      _batchRemaining.remove(reader.id);
-      return;
-    }
+    if (tasksToEnqueue.isEmpty) return;
 
-    _batchRemaining[reader.id] = tasksToEnqueue.length;
+    _batchRemaining[reader.id] =
+        (_batchRemaining[reader.id] ?? 0) + tasksToEnqueue.length;
     await FileDownloader().enqueueAll(tasksToEnqueue);
   }
 
@@ -274,8 +261,8 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
       // Skip if already on disk
       if (isDownloaded) continue;
 
-      // Skip if already downloading individually — let it finish on its own
-      if (_individualInProgress.contains(key)) continue;
+      // Skip if already downloading
+      if (_activeSurahs.contains(key)) continue;
 
       toDownload.add(i);
     }
@@ -289,8 +276,6 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
     final tasksToEnqueue = <DownloadTask>[];
 
     for (int i = 0; i < toDownload.length; i += _batchSize) {
-      if (!_batchInProgress.contains(reader.id)) break;
-
       final chunk = toDownload.sublist(
         i,
         i + _batchSize > toDownload.length ? toDownload.length : i + _batchSize,
@@ -325,6 +310,7 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
       _taskIsBatch[taskId] = true;
       tasksToEnqueue.add(_createTask(reader, surahNumber));
     } catch (e) {
+      _activeSurahs.remove(_surahKey(reader.id, surahNumber));
       _notifyProgress(reader.id, surahNumber, 0.0, SurahDownloadStatus.failed);
     }
   }
@@ -348,14 +334,13 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
 
   void _onDownloadFinished(int readerId, int surahNumber, String taskId) {
     final key = _surahKey(readerId, surahNumber);
-    _individualInProgress.remove(key);
+    _activeSurahs.remove(key);
 
     final isPartOfBatch = _taskIsBatch.remove(taskId) ?? false;
 
     if (isPartOfBatch) {
       final remaining = (_batchRemaining[readerId] ?? 1) - 1;
       if (remaining <= 0) {
-        _batchInProgress.remove(readerId);
         _batchRemaining.remove(readerId);
       } else {
         _batchRemaining[readerId] = remaining;
@@ -417,7 +402,7 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
 
   @override
   bool isFullQuranDownloading(int readerId) =>
-      _batchInProgress.contains(readerId);
+      (_batchRemaining[readerId] ?? 0) > 0;
 
   @override
   Stream<SurahDownloadProgress> get downloadProgress =>

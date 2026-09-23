@@ -1,4 +1,4 @@
-class AyaTimingModel {
+class AyaMetaDataModel {
   final int id;
 
   /// time in millisecond
@@ -7,14 +7,14 @@ class AyaTimingModel {
   /// time in millisecond
   final int endTime;
 
-  AyaTimingModel({
+  AyaMetaDataModel({
     required this.id,
     required this.startTime,
     required this.endTime,
   });
 
-  factory AyaTimingModel.fromApiJson(Map<String, dynamic> json) {
-    return AyaTimingModel(
+  factory AyaMetaDataModel.fromApiJson(Map<String, dynamic> json) {
+    return AyaMetaDataModel(
       id: json['ayah'],
       startTime: json['start_time'],
       endTime: json['end_time'],

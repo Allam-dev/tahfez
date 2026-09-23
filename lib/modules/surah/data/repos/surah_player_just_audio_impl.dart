@@ -9,7 +9,7 @@ import 'package:tahfez/core/services/logs/log.dart';
 import 'package:tahfez/modules/reader/domain/models/reader_model.dart';
 import 'package:tahfez/modules/surah/data/data_sources/api/surah_api.dart';
 import 'package:tahfez/modules/surah/domain/enums/surah_player_state.dart';
-import 'package:tahfez/modules/surah/domain/models/aya_timing_model.dart';
+import 'package:tahfez/modules/surah/domain/models/aya_meta_data_model.dart';
 import 'package:tahfez/modules/surah/domain/models/surah_model.dart';
 import 'package:tahfez/modules/surah/domain/params/surah_play_params.dart';
 import 'package:tahfez/modules/surah/domain/utils/quran_audio_resolver.dart';
@@ -46,11 +46,11 @@ class _PlaybackItem {
 /// Responsible for fetching and caching Surah Ayah timings per reader.
 class _SurahTimingsManager {
   final SurahAPI _api = SurahAPI();
-  final Map<int, List<AyaTimingModel>> _cache = {};
+  final Map<int, List<AyaMetaDataModel>> _cache = {};
   int? _cachedReaderId;
 
   /// Retrieves cached timings or fetches them from the API if reader changes.
-  Future<List<AyaTimingModel>> getTimings(
+  Future<List<AyaMetaDataModel>> getTimings(
     int surahNumber,
     ReaderModel reader,
   ) async {
@@ -449,21 +449,24 @@ class SurahPlayerJustAudioImpl extends BaseAudioHandler implements SurahPlayer {
 
     final List<String> details = [];
     if (item.totalAyaRepeats > 1) {
-      details.add('تكرار الآية: ${item.currentAyaRepeat}/${item.totalAyaRepeats}');
+      details.add(
+        'تكرار الآية: ${item.currentAyaRepeat}/${item.totalAyaRepeats}',
+      );
     }
     if (item.totalSectionRepeats > 1) {
-      details.add('تكرار المقطع: ${item.currentSectionRepeat}/${item.totalSectionRepeats}');
+      details.add(
+        'تكرار المقطع: ${item.currentSectionRepeat}/${item.totalSectionRepeats}',
+      );
     }
     if (details.isEmpty && item.reader.name.isNotEmpty) {
       details.add(item.reader.name);
     }
 
-    final String subtitle = details.isNotEmpty
-        ? details.join(' • ')
-        : 'Tahfez';
+    final String subtitle = details.isNotEmpty ? details.join(' • ') : 'Tahfez';
 
     return MediaItem(
-      id: customId ??
+      id:
+          customId ??
           '${item.surahNumber}_${item.startAya}_${item.currentAyaRepeat}_${item.currentSectionRepeat}',
       title: title,
       artist: subtitle,
