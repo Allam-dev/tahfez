@@ -17,30 +17,107 @@ import 'package:tahfez/modules/surah/domain/utils/quran_audio_resolver.dart';
 import '../../domain/surah_player.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 1. Data Transfer Models & Helper Components (Single Responsibility Principle)
+// 1. Helper Components (Single Responsibility Principle)
 // ─────────────────────────────────────────────────────────────────────────────
 
-/// Represents a single scheduled clip in the playback queue.
-class _PlaybackItem {
-  final ReaderModel reader;
-  final int surahNumber;
-  final int startAya;
-  final int endAya;
-  final int currentAyaRepeat;
-  final int totalAyaRepeats;
-  final int currentSectionRepeat;
-  final int totalSectionRepeats;
+/// Stateful iterator that walks through the playback sequence on demand.
+///
+/// Supports two modes:
+/// - `ayaRepeatCount == 1`: each surah in range is one clip (gapless).
+/// - `ayaRepeatCount > 1`: each ayah is a separate clip, repeated N times.
+///
+/// Section repeats replay the entire range from start.
+class _Counter {
+  late SurahPlayParams _params;
 
-  const _PlaybackItem({
-    required this.reader,
-    required this.surahNumber,
-    required this.startAya,
-    required this.endAya,
-    this.currentAyaRepeat = 1,
-    this.totalAyaRepeats = 1,
-    this.currentSectionRepeat = 1,
-    this.totalSectionRepeats = 1,
-  });
+  int _currentSurahNumber = 1;
+  int get currentSurahNumber => _currentSurahNumber;
+
+  int _currentAya = 1;
+  int get currentAya => _currentAya;
+
+  int _currentAyaRepeat = 1;
+  int get currentAyaRepeat => _currentAyaRepeat;
+
+  int _currentSectionRepeat = 1;
+  int get currentSectionRepeat => _currentSectionRepeat;
+
+  bool _isFinished = true;
+  bool get isFinished => _isFinished;
+
+  /// Clip start ayah — full surah range when ayaRepeatCount == 1.
+  int get startAya {
+    if (_params.ayaRepeatCount == 1) {
+      return (_currentSurahNumber == _params.startSurahNumber)
+          ? _params.startAya
+          : 1;
+    }
+    return _currentAya;
+  }
+
+  /// Clip end ayah — full surah range when ayaRepeatCount == 1.
+  int get endAya {
+    if (_params.ayaRepeatCount == 1) {
+      return lastAyaOfCurrentSurah;
+    }
+    return _currentAya;
+  }
+
+  void reset(SurahPlayParams params) {
+    _params = params;
+    _currentSurahNumber = params.startSurahNumber;
+    _currentAya = params.startAya;
+    _currentAyaRepeat = 1;
+    _currentSectionRepeat = 1;
+    _isFinished = false;
+  }
+
+  void increment() {
+    if (_isFinished) return;
+
+    if (_params.ayaRepeatCount == 1) {
+      _incrementSurah();
+    } else if (_currentAyaRepeat < _params.ayaRepeatCount) {
+      _currentAyaRepeat++;
+    } else {
+      _currentAyaRepeat = 1;
+      _incrementAya();
+    }
+  }
+
+  void _incrementAya() {
+    if (_currentAya < lastAyaOfCurrentSurah) {
+      _currentAya++;
+    } else {
+      _incrementSurah();
+    }
+  }
+
+  void _incrementSurah() {
+    if (_currentSurahNumber < _params.endSurahNumber) {
+      _currentSurahNumber++;
+      _currentAya = 1;
+    } else {
+      _resetOrFinish();
+    }
+  }
+
+  void _resetOrFinish() {
+    if (_currentSectionRepeat < _params.sectionRepeatCount) {
+      _currentSectionRepeat++;
+      _currentSurahNumber = _params.startSurahNumber;
+      _currentAya = _params.startAya;
+    } else {
+      _isFinished = true;
+    }
+  }
+
+  int get lastAyaOfCurrentSurah {
+    if (_currentSurahNumber == _params.endSurahNumber) {
+      return _params.endAya;
+    }
+    return SUR[_currentSurahNumber - 1].versesCount;
+  }
 }
 
 /// Responsible for fetching and caching Surah Ayah timings per reader.
@@ -73,91 +150,6 @@ class _SurahTimingsManager {
   }
 }
 
-/// Pure domain helper that transforms [SurahPlayParams] into a scheduled plan of [_PlaybackItem]s.
-class _SurahPlaybackPlanBuilder {
-  static List<_PlaybackItem> buildPlan(SurahPlayParams params) {
-    final List<_PlaybackItem> plan = [];
-
-    for (int section = 0; section < params.sectionRepeatCount; section++) {
-      for (
-        int surah = params.startSurahNumber;
-        surah <= params.endSurahNumber;
-        surah++
-      ) {
-        final range = _calculateAyahRange(surah, params);
-        _addItemsForSurah(
-          plan,
-          surahNumber: surah,
-          range: range,
-          params: params,
-          currentSectionRepeat: section + 1,
-          totalSectionRepeats: params.sectionRepeatCount,
-        );
-      }
-    }
-
-    return plan;
-  }
-
-  static ({int startAya, int endAya}) _calculateAyahRange(
-    int surahNumber,
-    SurahPlayParams params,
-  ) {
-    final int totalAyahs = SUR[surahNumber - 1].versesCount;
-
-    if (params.startSurahNumber == params.endSurahNumber) {
-      return (startAya: params.startAya, endAya: params.endAya);
-    } else if (surahNumber == params.startSurahNumber) {
-      return (startAya: params.startAya, endAya: totalAyahs);
-    } else if (surahNumber == params.endSurahNumber) {
-      return (startAya: 1, endAya: params.endAya);
-    } else {
-      return (startAya: 1, endAya: totalAyahs);
-    }
-  }
-
-  static void _addItemsForSurah(
-    List<_PlaybackItem> plan, {
-    required int surahNumber,
-    required ({int startAya, int endAya}) range,
-    required SurahPlayParams params,
-    required int currentSectionRepeat,
-    required int totalSectionRepeats,
-  }) {
-    if (params.ayaRepeatCount == 1) {
-      plan.add(
-        _PlaybackItem(
-          reader: params.reader,
-          surahNumber: surahNumber,
-          startAya: range.startAya,
-          endAya: range.endAya,
-          currentAyaRepeat: 1,
-          totalAyaRepeats: 1,
-          currentSectionRepeat: currentSectionRepeat,
-          totalSectionRepeats: totalSectionRepeats,
-        ),
-      );
-    } else {
-      for (int aya = range.startAya; aya <= range.endAya; aya++) {
-        for (int repeat = 0; repeat < params.ayaRepeatCount; repeat++) {
-          plan.add(
-            _PlaybackItem(
-              reader: params.reader,
-              surahNumber: surahNumber,
-              startAya: aya,
-              endAya: aya,
-              currentAyaRepeat: repeat + 1,
-              totalAyaRepeats: params.ayaRepeatCount,
-              currentSectionRepeat: currentSectionRepeat,
-              totalSectionRepeats: totalSectionRepeats,
-            ),
-          );
-        }
-      }
-    }
-  }
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
 // 2. Main Service Implementation
 // ─────────────────────────────────────────────────────────────────────────────
@@ -170,15 +162,15 @@ class SurahPlayerJustAudioImpl extends BaseAudioHandler implements SurahPlayer {
   final StreamController<SurahPlayerState> _stateController =
       StreamController<SurahPlayerState>.broadcast();
 
+  // --- Counter & Params ---
+  late SurahPlayParams _currentPlayParams;
+  final _Counter _counter = _Counter();
+
   // --- State Tracking ---
   SurahPlayerState _lastState = SurahPlayerState.idel;
   static bool _permissionsRequested = false;
-
-  // --- Sliding Window Queue State ---
-  List<_PlaybackItem> _playbackPlan = [];
-  int _currentPlanIndex = -1;
-  int _nextUnqueuedPlanIndex = 0;
   bool _isQueueUpdating = false;
+  bool _isActive = false;
 
   StreamSubscription? _currentIndexSub;
 
@@ -205,19 +197,17 @@ class SurahPlayerJustAudioImpl extends BaseAudioHandler implements SurahPlayer {
   }
 
   SurahPlayerJustAudioImpl._() {
-    _initListeners();
+    _setupListeners();
   }
 
-  void _initListeners() {
-    _player.playerStateStream.listen(_handlePlayerStateChange);
+  void _setupListeners() {
+    _player.playerStateStream.listen(_onPlayerStateChanged);
 
-    // Sliding window queue advancement listener:
+    // Sliding window advancement:
     // When track 0 finishes and track 1 begins playing, index emits 1.
     // We drop track 0 and append the next scheduled track.
     _currentIndexSub = _player.currentIndexStream.listen((index) {
-      if (index == 1) {
-        _advanceSlidingWindow();
-      }
+      if (index == 1) _onTrackCompleted();
     });
   }
 
@@ -242,7 +232,7 @@ class SurahPlayerJustAudioImpl extends BaseAudioHandler implements SurahPlayer {
 
   @override
   Future<void> stop() async {
-    await _clearAndStopPlayback();
+    await _stopAndReset();
   }
 
   @override
@@ -271,16 +261,32 @@ class SurahPlayerJustAudioImpl extends BaseAudioHandler implements SurahPlayer {
     await _player.stop();
 
     try {
-      _playbackPlan = _SurahPlaybackPlanBuilder.buildPlan(params);
+      _currentPlayParams = params;
+      _counter.reset(params);
+      _isActive = true;
 
-      if (_playbackPlan.isEmpty) {
+      // Fill initial sliding window (up to 3 sources)
+      final sources = <AudioSource>[];
+      MediaItem? firstMediaItem;
+      for (int i = 0; i < 3; i++) {
+        final source = await _takeNextSource();
+        if (source == null) break;
+        firstMediaItem ??= source.tag as MediaItem;
+        sources.add(source);
+      }
+
+      if (sources.isEmpty) {
+        _isActive = false;
         _emit(SurahPlayerState.idel);
         return;
       }
 
-      await _loadPlanWindow(0);
+      // Set notification to first track's metadata
+      mediaItem.add(firstMediaItem!);
+      await _player.setAudioSources(sources, initialIndex: 0);
+      _player.play();
     } catch (e) {
-      await _clearAndStopPlayback();
+      await _stopAndReset();
       if (e is Failure) {
         rethrow;
       } else {
@@ -289,123 +295,148 @@ class SurahPlayerJustAudioImpl extends BaseAudioHandler implements SurahPlayer {
     }
   }
 
-  /// Populates the 3-item sliding audio window starting at [targetIndex].
-  Future<void> _loadPlanWindow(int targetIndex) async {
-    if (targetIndex < 0 || targetIndex >= _playbackPlan.length) return;
-
-    _isQueueUpdating = true;
-    _emit(SurahPlayerState.loading);
-
-    try {
-      await _player.stop();
-      _currentPlanIndex = targetIndex;
-      _nextUnqueuedPlanIndex = targetIndex;
-
-      final initialSources = <AudioSource>[];
-      while (initialSources.length < 3 &&
-          _nextUnqueuedPlanIndex < _playbackPlan.length) {
-        final source = await _createAudioSource(
-          _playbackPlan[_nextUnqueuedPlanIndex],
-        );
-        initialSources.add(source);
-        _nextUnqueuedPlanIndex++;
-      }
-
-      if (initialSources.isNotEmpty) {
-        final currentItem = _playbackPlan[_currentPlanIndex];
-        mediaItem.add(_buildMediaMetadata(currentItem));
-
-        await _player.setAudioSources(initialSources, initialIndex: 0);
-        _player.play();
-      }
-    } finally {
-      _isQueueUpdating = false;
-      _syncBroadcastState();
-    }
-  }
-
-  /// Advances the sliding window when a track completes.
-  Future<void> _advanceSlidingWindow() async {
+  /// Called when track at index 0 finishes and index 1 becomes active.
+  Future<void> _onTrackCompleted() async {
     if (_isQueueUpdating) return;
     _isQueueUpdating = true;
 
     try {
-      _currentPlanIndex++;
-      if (_currentPlanIndex < _playbackPlan.length) {
-        final currentItem = _playbackPlan[_currentPlanIndex];
-        mediaItem.add(_buildMediaMetadata(currentItem));
+      // Update notification from the now-active source's tag
+      final sequence = _player.sequenceState.sequence;
+      if (sequence.length > 1) {
+        final activeTag = sequence[1].tag;
+        if (activeTag is MediaItem) mediaItem.add(activeTag);
       }
 
-      // Remove completed item from playlist head
+      // Drop completed track at head
       await _player.removeAudioSourceAt(0);
 
-      // Append next item to playlist tail
-      if (_nextUnqueuedPlanIndex < _playbackPlan.length) {
-        final source = await _createAudioSource(
-          _playbackPlan[_nextUnqueuedPlanIndex],
-        );
-        _nextUnqueuedPlanIndex++;
-        await _player.addAudioSource(source);
+      // Append next source to tail (with error resilience)
+      try {
+        final next = await _takeNextSource();
+        if (next != null) await _player.addAudioSource(next);
+      } catch (e) {
+        Log.error('Failed to queue next track: $e');
       }
     } finally {
       _isQueueUpdating = false;
-      _syncBroadcastState();
+      _updateNotification();
     }
   }
 
-  /// Unified teardown routine (DRY): stops player, resets queue state, and clears notification.
-  Future<void> _clearAndStopPlayback() async {
-    _resetPlanState();
+  /// Unified teardown: stops player, resets state, clears notification.
+  Future<void> _stopAndReset() async {
+    _isActive = false;
     mediaItem.add(null);
     await _player.stop();
     _emit(SurahPlayerState.idel);
-    _broadcastPlaybackState(AudioProcessingState.idle, false);
-  }
-
-  void _resetPlanState() {
-    _playbackPlan = [];
-    _currentPlanIndex = -1;
-    _nextUnqueuedPlanIndex = 0;
+    _emitPlaybackState(AudioProcessingState.idle, false);
   }
 
   // ───────────────────────────────────────────────────────────────────────────
-  // State Mapping & System Notification Synchronization
+  // Source Building (DRY)
   // ───────────────────────────────────────────────────────────────────────────
 
-  void _handlePlayerStateChange(PlayerState playerState) {
+  /// Consumes the current counter state, builds a [ClippingAudioSource],
+  /// then advances the counter. Returns null if counter is finished.
+  Future<IndexedAudioSource?> _takeNextSource() async {
+    if (_counter.isFinished) return null;
+
+    final tag = _buildMediaItem();
+    final timings = await _timingsManager.getTimings(
+      _counter.currentSurahNumber,
+      _currentPlayParams.reader,
+    );
+
+    final int startMs = timings[_counter.startAya - 1].startTime;
+    final int endMs = timings[_counter.endAya - 1].endTime;
+
+    final uri = await QuranAudioResolver.playbackUri(
+      _currentPlayParams.reader,
+      _counter.currentSurahNumber,
+    );
+
+    _counter.increment();
+
+    return ClippingAudioSource(
+      child: AudioSource.uri(uri),
+      start: Duration(milliseconds: startMs),
+      end: Duration(milliseconds: endMs),
+      tag: tag,
+    );
+  }
+
+  /// Builds a [MediaItem] from the current counter state for notifications.
+  MediaItem _buildMediaItem() {
+    final String surahName = SUR[_counter.currentSurahNumber - 1].name;
+    final String ayaInfo = (_counter.startAya == _counter.endAya)
+        ? 'آية ${_counter.startAya}/${_counter.lastAyaOfCurrentSurah}'
+        : 'آيات ${_counter.startAya}-${_counter.endAya}';
+
+    final String title = 'سورة $surahName ($ayaInfo)';
+
+    final List<String> details = [];
+    if (_currentPlayParams.ayaRepeatCount > 1) {
+      details.add(
+        'تكرار الآية: ${_counter.currentAyaRepeat}/${_currentPlayParams.ayaRepeatCount}',
+      );
+    }
+    if (_currentPlayParams.sectionRepeatCount > 1) {
+      details.add(
+        'تكرار المقطع: ${_counter.currentSectionRepeat}/${_currentPlayParams.sectionRepeatCount}',
+      );
+    }
+    if (details.isEmpty && _currentPlayParams.reader.name.isNotEmpty) {
+      details.add(_currentPlayParams.reader.name);
+    }
+
+    final String subtitle = details.isNotEmpty ? details.join(' • ') : 'Tahfez';
+
+    return MediaItem(
+      id: '${_counter.currentSurahNumber}_${_counter.currentAya}_${_counter.currentAyaRepeat}_${_counter.currentSectionRepeat}',
+      title: title,
+      artist: subtitle,
+      album: _currentPlayParams.reader.name.isNotEmpty
+          ? _currentPlayParams.reader.name
+          : 'Tahfez',
+    );
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // State Mapping & Notification Synchronization
+  // ───────────────────────────────────────────────────────────────────────────
+
+  void _onPlayerStateChanged(PlayerState playerState) {
     switch (playerState.processingState) {
       case ProcessingState.idle:
-        if (_playbackPlan.isEmpty) {
-          _clearAndStopPlayback();
+        if (!_isActive) {
+          _stopAndReset();
         }
         break;
 
       case ProcessingState.loading:
         _emit(SurahPlayerState.loading);
-        _broadcastPlaybackState(AudioProcessingState.loading, false);
+        _emitPlaybackState(AudioProcessingState.loading, false);
         break;
 
       case ProcessingState.buffering:
         _emit(SurahPlayerState.loading);
-        _broadcastPlaybackState(
-          AudioProcessingState.buffering,
-          playerState.playing,
-        );
+        _emitPlaybackState(AudioProcessingState.buffering, playerState.playing);
         break;
 
       case ProcessingState.ready:
         final bool isPlaying = playerState.playing;
         _emit(isPlaying ? SurahPlayerState.play : SurahPlayerState.pause);
-        _broadcastPlaybackState(AudioProcessingState.ready, isPlaying);
+        _emitPlaybackState(AudioProcessingState.ready, isPlaying);
         break;
 
       case ProcessingState.completed:
-        _clearAndStopPlayback();
+        _stopAndReset();
         break;
     }
   }
 
-  void _syncBroadcastState() {
+  void _updateNotification() {
     final AudioProcessingState processing = switch (_player.processingState) {
       ProcessingState.idle => AudioProcessingState.idle,
       ProcessingState.loading => AudioProcessingState.loading,
@@ -413,13 +444,10 @@ class SurahPlayerJustAudioImpl extends BaseAudioHandler implements SurahPlayer {
       ProcessingState.ready => AudioProcessingState.ready,
       ProcessingState.completed => AudioProcessingState.completed,
     };
-    _broadcastPlaybackState(processing, _player.playing);
+    _emitPlaybackState(processing, _player.playing);
   }
 
-  void _broadcastPlaybackState(
-    AudioProcessingState processingState,
-    bool playing,
-  ) {
+  void _emitPlaybackState(AudioProcessingState processingState, bool playing) {
     final bool isIdle = processingState == AudioProcessingState.idle;
     playbackState.add(
       PlaybackState(
@@ -439,66 +467,9 @@ class SurahPlayerJustAudioImpl extends BaseAudioHandler implements SurahPlayer {
     );
   }
 
-  MediaItem _buildMediaMetadata(_PlaybackItem item, {String? customId}) {
-    final String surahName = SUR[item.surahNumber - 1].name;
-    final String ayaInfo = item.startAya == item.endAya
-        ? 'آية ${item.startAya}'
-        : 'آيات ${item.startAya}-${item.endAya}';
-
-    final String title = 'سورة $surahName ($ayaInfo)';
-
-    final List<String> details = [];
-    if (item.totalAyaRepeats > 1) {
-      details.add(
-        'تكرار الآية: ${item.currentAyaRepeat}/${item.totalAyaRepeats}',
-      );
-    }
-    if (item.totalSectionRepeats > 1) {
-      details.add(
-        'تكرار المقطع: ${item.currentSectionRepeat}/${item.totalSectionRepeats}',
-      );
-    }
-    if (details.isEmpty && item.reader.name.isNotEmpty) {
-      details.add(item.reader.name);
-    }
-
-    final String subtitle = details.isNotEmpty ? details.join(' • ') : 'Tahfez';
-
-    return MediaItem(
-      id:
-          customId ??
-          '${item.surahNumber}_${item.startAya}_${item.currentAyaRepeat}_${item.currentSectionRepeat}',
-      title: title,
-      artist: subtitle,
-      album: item.reader.name.isNotEmpty ? item.reader.name : 'Tahfez',
-    );
-  }
-
   // ───────────────────────────────────────────────────────────────────────────
-  // Helper Utilities & Audio Sources
+  // Permissions
   // ───────────────────────────────────────────────────────────────────────────
-
-  Future<AudioSource> _createAudioSource(_PlaybackItem item) async {
-    final timings = await _timingsManager.getTimings(
-      item.surahNumber,
-      item.reader,
-    );
-
-    final int startMs = timings[item.startAya - 1].startTime;
-    final int endMs = timings[item.endAya - 1].endTime;
-
-    final uri = await QuranAudioResolver.playbackUri(
-      item.reader,
-      item.surahNumber,
-    );
-
-    return ClippingAudioSource(
-      child: AudioSource.uri(uri),
-      start: Duration(milliseconds: startMs),
-      end: Duration(milliseconds: endMs),
-      tag: _buildMediaMetadata(item, customId: uri.toString()),
-    );
-  }
 
   Future<void> _ensurePermissionsGranted() async {
     if (_permissionsRequested || !Platform.isAndroid) return;
