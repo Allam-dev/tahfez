@@ -3,5 +3,4 @@ enum SurahPlayerState {
   play,
   pause,
   loading;
-
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tahfez/app/style/colors/app_colors.dart';
+import 'package:tahfez/app/style/colors/aya_highlight_colors.dart';
 
 import '../colors/player_colors.dart';
 
@@ -102,7 +103,10 @@ ThemeData DARK_THEME = ThemeData(
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
     labelStyle: const TextStyle(color: AppColors.inkDark, fontSize: 13),
     secondaryLabelStyle: const TextStyle(
-        color: AppColors.green300, fontWeight: FontWeight.w600, fontSize: 13),
+      color: AppColors.green300,
+      fontWeight: FontWeight.w600,
+      fontSize: 13,
+    ),
     brightness: Brightness.dark,
     side: const BorderSide(color: AppColors.night600),
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -121,7 +125,8 @@ ThemeData DARK_THEME = ThemeData(
           ? const TextStyle(
               color: AppColors.green300,
               fontWeight: FontWeight.bold,
-              fontSize: 12)
+              fontSize: 12,
+            )
           : const TextStyle(color: AppColors.inkDarkSecondary, fontSize: 12),
     ),
   ),
@@ -156,6 +161,5 @@ ThemeData DARK_THEME = ThemeData(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     ),
   ),
-  extensions: const [PlayerColors.dark],
+  extensions: [PlayerColors.dark, AyaHighlightColors.dark],
 );
-

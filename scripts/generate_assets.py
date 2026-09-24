@@ -12,7 +12,9 @@ OUTPUT_FILE_PATH = os.path.join(PROJECT_ROOT, 'lib', 'app', 'assets', 'assets.da
 # Directories to exclude (Keep using forward slashes relative to the assets root)
 EXCLUDE_DIRS = {
     'assets/translation',
-    'assets/dev'
+    'assets/dev',
+    'assets/quran_svg',
+    'assets/quran_svg_dark'
 }
 # =======================================================
 

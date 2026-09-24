@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tahfez/app/style/colors/app_colors.dart';
+import 'package:tahfez/app/style/colors/aya_highlight_colors.dart';
 
 import '../colors/player_colors.dart';
 
@@ -82,9 +83,7 @@ ThemeData LIGHT_THEME = ThemeData(
     trackHeight: 4,
   ),
   switchTheme: SwitchThemeData(
-    thumbColor: WidgetStateProperty.resolveWith(
-      (states) => Colors.white,
-    ),
+    thumbColor: WidgetStateProperty.resolveWith((states) => Colors.white),
     trackColor: WidgetStateProperty.resolveWith(
       (states) => states.contains(WidgetState.selected)
           ? AppColors.green500
@@ -100,7 +99,10 @@ ThemeData LIGHT_THEME = ThemeData(
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
     labelStyle: const TextStyle(color: AppColors.inkLight, fontSize: 13),
     secondaryLabelStyle: const TextStyle(
-        color: AppColors.green500, fontWeight: FontWeight.w600, fontSize: 13),
+      color: AppColors.green500,
+      fontWeight: FontWeight.w600,
+      fontSize: 13,
+    ),
     brightness: Brightness.light,
     side: const BorderSide(color: AppColors.sand200),
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -119,7 +121,8 @@ ThemeData LIGHT_THEME = ThemeData(
           ? const TextStyle(
               color: AppColors.green500,
               fontWeight: FontWeight.bold,
-              fontSize: 12)
+              fontSize: 12,
+            )
           : const TextStyle(color: AppColors.inkLightSecondary, fontSize: 12),
     ),
   ),
@@ -154,6 +157,5 @@ ThemeData LIGHT_THEME = ThemeData(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     ),
   ),
-  extensions: const [PlayerColors.light],
+  extensions: [PlayerColors.light, AyaHighlightColors.light],
 );
-

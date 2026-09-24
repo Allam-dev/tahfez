@@ -1,4 +1,4 @@
-import 'package:tahfez/modules/surah/domain/enums/surah_player_state.dart';
+import 'package:tahfez/modules/surah/domain/models/surah_playback_info.dart';
 import 'package:tahfez/modules/surah/domain/params/surah_play_params.dart';
 
 abstract class SurahPlayer {
@@ -7,6 +7,10 @@ abstract class SurahPlayer {
   void pause();
   void stop();
   void resume();
-  Stream<SurahPlayerState> get state;
+
+  /// Single unified stream: player state + real-time playback info.
+  /// Always has a current value (starts with idle).
+  Stream<SurahPlaybackInfo> get status;
+
   Future<void> dispose();
 }

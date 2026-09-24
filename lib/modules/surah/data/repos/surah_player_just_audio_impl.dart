@@ -11,6 +11,7 @@ import 'package:tahfez/modules/surah/data/data_sources/api/surah_api.dart';
 import 'package:tahfez/modules/surah/domain/enums/surah_player_state.dart';
 import 'package:tahfez/modules/surah/domain/models/aya_meta_data_model.dart';
 import 'package:tahfez/modules/surah/domain/models/surah_model.dart';
+import 'package:tahfez/modules/surah/domain/models/surah_playback_info.dart';
 import 'package:tahfez/modules/surah/domain/params/surah_play_params.dart';
 import 'package:tahfez/modules/surah/domain/utils/quran_audio_resolver.dart';
 
@@ -159,15 +160,15 @@ class SurahPlayerJustAudioImpl extends BaseAudioHandler implements SurahPlayer {
   // --- Infrastructure & Controllers ---
   final AudioPlayer _player = AudioPlayer();
   final _SurahTimingsManager _timingsManager = _SurahTimingsManager();
-  final StreamController<SurahPlayerState> _stateController =
-      StreamController<SurahPlayerState>.broadcast();
+  final StreamController<SurahPlaybackInfo> _statusController =
+      StreamController<SurahPlaybackInfo>.broadcast();
 
   // --- Counter & Params ---
   late SurahPlayParams _currentPlayParams;
   final _Counter _counter = _Counter();
 
   // --- State Tracking ---
-  SurahPlayerState _lastState = SurahPlayerState.idel;
+  SurahPlaybackInfo _lastStatus = const SurahPlaybackInfo.idle();
   static bool _permissionsRequested = false;
   bool _isQueueUpdating = false;
   bool _isActive = false;
@@ -244,12 +245,13 @@ class SurahPlayerJustAudioImpl extends BaseAudioHandler implements SurahPlayer {
   Future<void> dispose() async {
     await _currentIndexSub?.cancel();
     await _player.dispose();
+    await _statusController.close();
   }
 
   @override
-  Stream<SurahPlayerState> get state async* {
-    yield _lastState;
-    yield* _stateController.stream;
+  Stream<SurahPlaybackInfo> get status async* {
+    yield _lastStatus;
+    yield* _statusController.stream;
   }
 
   // ───────────────────────────────────────────────────────────────────────────
@@ -257,7 +259,9 @@ class SurahPlayerJustAudioImpl extends BaseAudioHandler implements SurahPlayer {
   // ───────────────────────────────────────────────────────────────────────────
 
   Future<void> _startPlayback(SurahPlayParams params) async {
-    _emit(SurahPlayerState.loading);
+    _emitStatus(
+      const SurahPlaybackInfo.idle().withState(SurahPlayerState.loading),
+    );
     await _player.stop();
 
     try {
@@ -267,23 +271,24 @@ class SurahPlayerJustAudioImpl extends BaseAudioHandler implements SurahPlayer {
 
       // Fill initial sliding window (up to 3 sources)
       final sources = <AudioSource>[];
-      MediaItem? firstMediaItem;
+      SurahPlaybackInfo? firstInfo;
       for (int i = 0; i < 3; i++) {
         final source = await _takeNextSource();
         if (source == null) break;
-        firstMediaItem ??= source.tag as MediaItem;
+        firstInfo ??= source.tag as SurahPlaybackInfo;
         sources.add(source);
       }
 
       if (sources.isEmpty) {
         _isActive = false;
-        _emit(SurahPlayerState.idel);
+        _emitStatus(const SurahPlaybackInfo.idle());
         return;
       }
 
-      // Set notification to first track's metadata
-      mediaItem.add(firstMediaItem!);
+      // Set notification & emit first track's status
+      mediaItem.add(_buildMediaItem(firstInfo!));
       await _player.setAudioSources(sources, initialIndex: 0);
+      _emitStatus(firstInfo);
       _player.play();
     } catch (e) {
       await _stopAndReset();
@@ -301,11 +306,12 @@ class SurahPlayerJustAudioImpl extends BaseAudioHandler implements SurahPlayer {
     _isQueueUpdating = true;
 
     try {
-      // Update notification from the now-active source's tag
+      // Read the now-active source's tag (SurahPlaybackInfo)
       final sequence = _player.sequenceState.sequence;
       if (sequence.length > 1) {
-        final activeTag = sequence[1].tag;
-        if (activeTag is MediaItem) mediaItem.add(activeTag);
+        final info = sequence[1].tag as SurahPlaybackInfo;
+        mediaItem.add(_buildMediaItem(info));
+        _emitStatus(info);
       }
 
       // Drop completed track at head
@@ -329,24 +335,27 @@ class SurahPlayerJustAudioImpl extends BaseAudioHandler implements SurahPlayer {
     _isActive = false;
     mediaItem.add(null);
     await _player.stop();
-    _emit(SurahPlayerState.idel);
+    _emitStatus(const SurahPlaybackInfo.idle());
     _emitPlaybackState(AudioProcessingState.idle, false);
   }
 
   // ───────────────────────────────────────────────────────────────────────────
-  // Source Building (DRY)
+  // Source Building
   // ───────────────────────────────────────────────────────────────────────────
 
-  /// Consumes the current counter state, builds a [ClippingAudioSource],
-  /// then advances the counter. Returns null if counter is finished.
+  /// Consumes the current counter state, builds a [ClippingAudioSource]
+  /// tagged with a [SurahPlaybackInfo] snapshot, then advances the counter.
+  /// Returns null if counter is finished.
   Future<IndexedAudioSource?> _takeNextSource() async {
     if (_counter.isFinished) return null;
 
-    final tag = _buildMediaItem();
     final timings = await _timingsManager.getTimings(
       _counter.currentSurahNumber,
       _currentPlayParams.reader,
     );
+
+    // Build playback info BEFORE incrementing the counter.
+    final info = _buildStatusFromCounter(timings);
 
     final int startMs = timings[_counter.startAya - 1].startTime;
     final int endMs = timings[_counter.endAya - 1].endTime;
@@ -362,28 +371,49 @@ class SurahPlayerJustAudioImpl extends BaseAudioHandler implements SurahPlayer {
       child: AudioSource.uri(uri),
       start: Duration(milliseconds: startMs),
       end: Duration(milliseconds: endMs),
-      tag: tag,
+      tag: info,
     );
   }
 
-  /// Builds a [MediaItem] from the current counter state for notifications.
-  MediaItem _buildMediaItem() {
-    final String surahName = SUR[_counter.currentSurahNumber - 1].name;
-    final String ayaInfo = (_counter.startAya == _counter.endAya)
-        ? 'آية ${_counter.startAya}/${_counter.lastAyaOfCurrentSurah}'
-        : 'آيات ${_counter.startAya}-${_counter.endAya}';
+  // ───────────────────────────────────────────────────────────────────────────
+  // Status & MediaItem Builders
+  // ───────────────────────────────────────────────────────────────────────────
 
-    final String title = 'سورة $surahName ($ayaInfo)';
+  /// Builds a [SurahPlaybackInfo] from the current [_counter] + [_currentPlayParams].
+  /// Must be called before [_counter.increment()].
+  SurahPlaybackInfo _buildStatusFromCounter(List<AyaMetaDataModel> timings) {
+    final ayaIndex = _counter.currentAya - 1;
+    return SurahPlaybackInfo(
+      playerState: SurahPlayerState.play,
+      surahNumber: _counter.currentSurahNumber,
+      ayaMetaData: (ayaIndex >= 0 && ayaIndex < timings.length)
+          ? timings[ayaIndex]
+          : null,
+      currentAyaRepeat: _counter.currentAyaRepeat,
+      totalAyaRepeats: _currentPlayParams.ayaRepeatCount,
+      currentSectionRepeat: _counter.currentSectionRepeat,
+      totalSectionRepeats: _currentPlayParams.sectionRepeatCount,
+    );
+  }
+
+  /// Builds a [MediaItem] for the OS notification from a [SurahPlaybackInfo].
+  MediaItem _buildMediaItem(SurahPlaybackInfo info) {
+    final String surahName = SUR[info.surahNumber - 1].name;
+    final String ayaLabel = info.ayaMetaData != null
+        ? 'آية ${info.ayaMetaData!.id}'
+        : '';
+
+    final String title = 'سورة $surahName ($ayaLabel)';
 
     final List<String> details = [];
-    if (_currentPlayParams.ayaRepeatCount > 1) {
+    if (info.totalAyaRepeats > 1) {
       details.add(
-        'تكرار الآية: ${_counter.currentAyaRepeat}/${_currentPlayParams.ayaRepeatCount}',
+        'تكرار الآية: ${info.currentAyaRepeat}/${info.totalAyaRepeats}',
       );
     }
-    if (_currentPlayParams.sectionRepeatCount > 1) {
+    if (info.totalSectionRepeats > 1) {
       details.add(
-        'تكرار المقطع: ${_counter.currentSectionRepeat}/${_currentPlayParams.sectionRepeatCount}',
+        'تكرار المقطع: ${info.currentSectionRepeat}/${info.totalSectionRepeats}',
       );
     }
     if (details.isEmpty && _currentPlayParams.reader.name.isNotEmpty) {
@@ -393,7 +423,7 @@ class SurahPlayerJustAudioImpl extends BaseAudioHandler implements SurahPlayer {
     final String subtitle = details.isNotEmpty ? details.join(' • ') : 'Tahfez';
 
     return MediaItem(
-      id: '${_counter.currentSurahNumber}_${_counter.currentAya}_${_counter.currentAyaRepeat}_${_counter.currentSectionRepeat}',
+      id: '${info.surahNumber}_${info.ayaMetaData?.id ?? 0}_${info.currentAyaRepeat}_${info.currentSectionRepeat}',
       title: title,
       artist: subtitle,
       album: _currentPlayParams.reader.name.isNotEmpty
@@ -415,18 +445,20 @@ class SurahPlayerJustAudioImpl extends BaseAudioHandler implements SurahPlayer {
         break;
 
       case ProcessingState.loading:
-        _emit(SurahPlayerState.loading);
+        _emitStatus(_lastStatus.withState(SurahPlayerState.loading));
         _emitPlaybackState(AudioProcessingState.loading, false);
         break;
 
       case ProcessingState.buffering:
-        _emit(SurahPlayerState.loading);
+        _emitStatus(_lastStatus.withState(SurahPlayerState.loading));
         _emitPlaybackState(AudioProcessingState.buffering, playerState.playing);
         break;
 
       case ProcessingState.ready:
         final bool isPlaying = playerState.playing;
-        _emit(isPlaying ? SurahPlayerState.play : SurahPlayerState.pause);
+        _emitStatus(_lastStatus.withState(
+          isPlaying ? SurahPlayerState.play : SurahPlayerState.pause,
+        ));
         _emitPlaybackState(AudioProcessingState.ready, isPlaying);
         break;
 
@@ -484,8 +516,12 @@ class SurahPlayerJustAudioImpl extends BaseAudioHandler implements SurahPlayer {
     }
   }
 
-  void _emit(SurahPlayerState newState) {
-    _lastState = newState;
-    _stateController.add(newState);
+  // ───────────────────────────────────────────────────────────────────────────
+  // Unified Status Emission
+  // ───────────────────────────────────────────────────────────────────────────
+
+  void _emitStatus(SurahPlaybackInfo status) {
+    _lastStatus = status;
+    _statusController.add(status);
   }
 }

@@ -1,4 +1,6 @@
-class AyaMetaDataModel {
+import 'package:equatable/equatable.dart';
+
+class AyaMetaDataModel extends Equatable {
   final int id;
 
   /// time in millisecond
@@ -10,7 +12,7 @@ class AyaMetaDataModel {
   final String polygon;
   final String pageFileName;
 
-  AyaMetaDataModel({
+  const AyaMetaDataModel({
     required this.id,
     required this.startTime,
     required this.endTime,
@@ -24,7 +26,10 @@ class AyaMetaDataModel {
       startTime: json['start_time'],
       endTime: json['end_time'],
       polygon: json['polygon'],
-      pageFileName: json['page'],
+      pageFileName: json['page'].toString().split('/').last,
     );
   }
+
+  @override
+  List<Object?> get props => [id, pageFileName];
 }

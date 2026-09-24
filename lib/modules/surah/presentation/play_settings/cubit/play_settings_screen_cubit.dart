@@ -73,7 +73,7 @@ class PlaySettingsScreenCubit extends HydratedCubit<PlaySettingsScreenState> {
           status: PlaySettingsScreenStatus.switchChanged,
           playAudio: value,
           downloadWhilePlaying: value,
-          downloadingOnly: false,
+          downloadingOnly: !value,
         ),
       );
     }
@@ -97,8 +97,8 @@ class PlaySettingsScreenCubit extends HydratedCubit<PlaySettingsScreenState> {
       emit(
         state.copyWith(
           status: PlaySettingsScreenStatus.switchChanged,
-          playAudio: false,
-          downloadWhilePlaying: false,
+          playAudio: !value,
+          downloadWhilePlaying: !value,
           downloadingOnly: value,
         ),
       );
