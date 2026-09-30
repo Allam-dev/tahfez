@@ -14,14 +14,8 @@ class _RepeatCountersWidgetState extends State<_RepeatCountersWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '4. ${context.tr(LocaleKeys.repeatSettings)}',
-          style: TextStyle(
-            fontSize: 16.sp,
-            fontWeight: FontWeight.bold,
-            color: AppColors.green600,
-          ),
-        ),
+        TitleText(number: 3, text: context.tr(LocaleKeys.repeatSettings)),
+
         8.verticalSpace,
         Container(
           width: double.infinity,
@@ -43,7 +37,8 @@ class _RepeatCountersWidgetState extends State<_RepeatCountersWidget> {
                   ),
                   BlocBuilder<PlaySettingsScreenCubit, PlaySettingsScreenState>(
                     buildWhen: (previous, current) =>
-                        current.status == PlaySettingsScreenStatus.ayaRepetitionChanged,
+                        current.status ==
+                        PlaySettingsScreenStatus.ayaRepetitionChanged,
                     builder: (context, state) {
                       return _counterText(
                         count: state.playParams.ayaRepeatCount,

@@ -9,14 +9,7 @@ class _RangeSelectionDropdowns extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '3. ${context.tr(LocaleKeys.ayahRange)}',
-          style: TextStyle(
-            fontSize: 16.sp,
-            fontWeight: FontWeight.bold,
-            color: AppColors.green600,
-          ),
-        ),
+        TitleText(text: context.tr(LocaleKeys.ayahRange), number: 2),
         8.verticalSpace,
 
         Column(

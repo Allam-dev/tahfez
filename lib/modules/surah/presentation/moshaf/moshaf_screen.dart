@@ -5,6 +5,7 @@ import 'package:tahfez/app/style/colors/aya_highlight_colors.dart';
 import 'package:tahfez/core/di/main_di.dart';
 import 'package:tahfez/core/extensions/context/moshaf_page.dart';
 import 'package:tahfez/core/extensions/context/theme.dart';
+import 'package:tahfez/core/services/logs/log.dart';
 import 'package:tahfez/modules/surah/domain/models/surah_playback_info.dart';
 import 'package:tahfez/modules/surah/presentation/moshaf/cubit/moshaf_screen_cubit.dart';
 
@@ -46,7 +47,7 @@ class MoshafScreen extends StatelessWidget {
                       point.dy * activeScale,
                     );
                   }).toList();
-
+              Log.debug(state.ayaMetaData?.pageFileName ?? 'ss');
               // 3. Center the layout stack exactly like BoxFit.contain aligns graphics
               return Center(
                 child: SizedBox(
@@ -70,6 +71,13 @@ class MoshafScreen extends StatelessWidget {
                           targetPoints: scaledPoints,
                         ),
                       ),
+
+                      Positioned(
+                        top: 0,
+                        child: Text(
+                          '${state.currentAyaRepeat}/${state.totalAyaRepeats}',
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -81,8 +89,6 @@ class MoshafScreen extends StatelessWidget {
     );
   }
 }
-
-
 
 /// =========================================================================
 /// 5. SVG STRING PARSER REUSABLE UTILITY

@@ -9,14 +9,7 @@ class _PlayOptionsSwitch extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '5. ${context.tr(LocaleKeys.options)}',
-          style: TextStyle(
-            fontSize: 16.sp,
-            fontWeight: FontWeight.bold,
-            color: AppColors.green600,
-          ),
-        ),
+        TitleText(text: context.tr(LocaleKeys.options), number: 4),
         8.verticalSpace,
         Container(
           width: double.infinity,

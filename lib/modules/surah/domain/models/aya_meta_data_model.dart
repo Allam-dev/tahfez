@@ -11,6 +11,7 @@ class AyaMetaDataModel extends Equatable {
 
   final String polygon;
   final String pageFileName;
+  final int pageNumber;
 
   const AyaMetaDataModel({
     required this.id,
@@ -18,6 +19,7 @@ class AyaMetaDataModel extends Equatable {
     required this.endTime,
     required this.polygon,
     required this.pageFileName,
+    required this.pageNumber,
   });
 
   factory AyaMetaDataModel.fromApiJson(Map<String, dynamic> json) {
@@ -27,9 +29,10 @@ class AyaMetaDataModel extends Equatable {
       endTime: json['end_time'],
       polygon: json['polygon'],
       pageFileName: json['page'].toString().split('/').last,
+      pageNumber: int.parse(json['page'].toString().split('/').last.split(".").first),
     );
   }
 
   @override
-  List<Object?> get props => [id, pageFileName];
+  List<Object?> get props => [id, pageFileName, pageNumber];
 }

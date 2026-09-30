@@ -22,12 +22,6 @@ import '../../domain/surah_player.dart';
 // ─────────────────────────────────────────────────────────────────────────────
 
 /// Stateful iterator that walks through the playback sequence on demand.
-///
-/// Supports two modes:
-/// - `ayaRepeatCount == 1`: each surah in range is one clip (gapless).
-/// - `ayaRepeatCount > 1`: each ayah is a separate clip, repeated N times.
-///
-/// Section repeats replay the entire range from start.
 class _Counter {
   late SurahPlayParams _params;
 
@@ -46,24 +40,6 @@ class _Counter {
   bool _isFinished = true;
   bool get isFinished => _isFinished;
 
-  /// Clip start ayah — full surah range when ayaRepeatCount == 1.
-  int get startAya {
-    if (_params.ayaRepeatCount == 1) {
-      return (_currentSurahNumber == _params.startSurahNumber)
-          ? _params.startAya
-          : 1;
-    }
-    return _currentAya;
-  }
-
-  /// Clip end ayah — full surah range when ayaRepeatCount == 1.
-  int get endAya {
-    if (_params.ayaRepeatCount == 1) {
-      return lastAyaOfCurrentSurah;
-    }
-    return _currentAya;
-  }
-
   void reset(SurahPlayParams params) {
     _params = params;
     _currentSurahNumber = params.startSurahNumber;
@@ -76,9 +52,7 @@ class _Counter {
   void increment() {
     if (_isFinished) return;
 
-    if (_params.ayaRepeatCount == 1) {
-      _incrementSurah();
-    } else if (_currentAyaRepeat < _params.ayaRepeatCount) {
+    if (_currentAyaRepeat < _params.ayaRepeatCount) {
       _currentAyaRepeat++;
     } else {
       _currentAyaRepeat = 1;
@@ -357,8 +331,8 @@ class SurahPlayerJustAudioImpl extends BaseAudioHandler implements SurahPlayer {
     // Build playback info BEFORE incrementing the counter.
     final info = _buildStatusFromCounter(timings);
 
-    final int startMs = timings[_counter.startAya - 1].startTime;
-    final int endMs = timings[_counter.endAya - 1].endTime;
+    final int startMs = timings[_counter.currentAya - 1].startTime;
+    final int endMs = timings[_counter.currentAya - 1].endTime;
 
     final uri = await QuranAudioResolver.playbackUri(
       _currentPlayParams.reader,
@@ -456,9 +430,11 @@ class SurahPlayerJustAudioImpl extends BaseAudioHandler implements SurahPlayer {
 
       case ProcessingState.ready:
         final bool isPlaying = playerState.playing;
-        _emitStatus(_lastStatus.withState(
-          isPlaying ? SurahPlayerState.play : SurahPlayerState.pause,
-        ));
+        _emitStatus(
+          _lastStatus.withState(
+            isPlaying ? SurahPlayerState.play : SurahPlayerState.pause,
+          ),
+        );
         _emitPlaybackState(AudioProcessingState.ready, isPlaying);
         break;
 

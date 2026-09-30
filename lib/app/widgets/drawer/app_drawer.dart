@@ -11,7 +11,6 @@ import 'package:tahfez/core/extensions/context/theme.dart';
 import 'package:tahfez/core/extensions/locale/language_name.dart';
 import 'package:tahfez/core/services/url_lancher/url_lancher_service.dart';
 import 'package:tahfez/modules/donation/presentation/donation_screen.dart';
-import 'package:tahfez/modules/reader/presentation/readers/readers_screen.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -63,26 +62,26 @@ class AppDrawer extends StatelessWidget {
                 child: Column(
                   children: [
                     // Downloads
-                    ListTile(
-                      leading: Icon(
-                        Icons.download_rounded,
-                        color: theme.colorScheme.primary,
-                      ),
-                      title: Text(
-                        context.tr(LocaleKeys.downloads),
-                        style: TextStyle(
-                          fontSize: 15.sp,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      onTap: () {
-                        Navigator.pop(context); // close drawer
-                        context.push(const ReadersScreen());
-                      },
-                    ),
+                    /// ListTile(
+                    ///   leading: Icon(
+                    ///     Icons.download_rounded,
+                    ///     color: theme.colorScheme.primary,
+                    ///   ),
+                    ///   title: Text(
+                    ///     context.tr(LocaleKeys.downloads),
+                    ///     style: TextStyle(
+                    ///       fontSize: 15.sp,
+                    ///       fontWeight: FontWeight.w500,
+                    ///     ),
+                    ///   ),
+                    ///   shape: RoundedRectangleBorder(
+                    ///     borderRadius: BorderRadius.circular(12),
+                    ///   ),
+                    ///   onTap: () {
+                    ///     Navigator.pop(context); // close drawer
+                    ///     context.push(const ReadersScreen());
+                    ///   },
+                    /// ),
 
                     // Donation
                     ListTile(

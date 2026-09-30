@@ -5,7 +5,6 @@ enum ReadersDropdownStatus {
   loading,
   loaded,
   error,
-  rewayaChanged,
   readerChanged,
 }
 
@@ -13,39 +12,29 @@ enum ReadersDropdownStatus {
 class ReadersDropdownState {
   final ReadersDropdownStatus status;
 
-  final List<String> rewayat;
-  final Map<String, List<ReaderModel>> readersMap;
+  final List<ReaderModel> readers;
   final Failure? failure;
 
   final ReaderModel? selectedReader;
-  final String? selectedRewaya;
 
   const ReadersDropdownState({
     this.status = ReadersDropdownStatus.initial,
-    this.rewayat = const [],
-    this.readersMap = const {},
+    this.readers = const [],
     this.failure,
     this.selectedReader,
-    this.selectedRewaya,
   });
 
   ReadersDropdownState copyWith({
     ReadersDropdownStatus? status,
-    List<String>? rewayat,
-    Map<String, List<ReaderModel>>? readersMap,
+    List<ReaderModel>? readers,
     Failure? failure,
     ReaderModel? selectedReader,
-    String? selectedRewaya,
   }) {
     return ReadersDropdownState(
       status: status ?? this.status,
-      rewayat: rewayat ?? this.rewayat,
-      readersMap: readersMap ?? this.readersMap,
+      readers: readers ?? this.readers,
       failure: failure ?? this.failure,
       selectedReader: selectedReader ?? this.selectedReader,
-      selectedRewaya: selectedRewaya ?? this.selectedRewaya,
     );
   }
-
-  List<ReaderModel> get readersList => readersMap[selectedRewaya] ?? [];
 }

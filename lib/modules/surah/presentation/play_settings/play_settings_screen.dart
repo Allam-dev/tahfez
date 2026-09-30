@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:tahfez/app/localization/locale_keys.g.dart';
 import 'package:tahfez/app/style/colors/app_colors.dart';
 import 'package:tahfez/app/widgets/app_dropdown_menu.dart';
+import 'package:tahfez/app/widgets/text/title_text.dart';
 import 'package:tahfez/core/di/main_di.dart';
 import 'package:tahfez/core/extensions/context/showing.dart';
 import 'package:tahfez/modules/reader/presentation/widgets/readers_dropdown.dart';
@@ -40,22 +41,22 @@ class PlaySettingsScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Section 1 & 2: Readers and Qiraah Dropdowns
+                    // Section 1: Readers and Qiraah Dropdowns
                     ReadersDropdown(
                       onChanged: (value) =>
                           playSettingsScreenCubit.changeReader(value),
                     ),
                     24.verticalSpace,
 
-                    // Section 3: Ayah Range
+                    // Section 2: Ayah Range
                     const _RangeSelectionDropdowns(),
                     24.verticalSpace,
 
-                    // Section 4: Repeat Settings
+                    // Section 3: Repeat Settings
                     const _RepeatCountersWidget(),
                     24.verticalSpace,
 
-                    // Section 5: Options (Switches)
+                    // Section 4: Options (Switches)
                     const _PlayOptionsSwitch(),
                     32.verticalSpace,
 
