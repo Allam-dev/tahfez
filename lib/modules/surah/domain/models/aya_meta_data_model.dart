@@ -34,5 +34,5 @@ class AyaMetaDataModel extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, pageFileName, pageNumber];
+  List<Object?> get props => [id, pageNumber];
 }

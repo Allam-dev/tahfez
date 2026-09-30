@@ -18,71 +18,53 @@ class MoshafScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => MoshafScreenCubit(getIt()),
-      child: BlocBuilder<MoshafScreenCubit, SurahPlaybackInfo>(
+      child: BlocBuilder<MoshafScreenCubit, MoshafScreenState>(
         builder: (context, state) {
-          if (state.ayaMetaData == null) {
+          if (state.playbackInfo.ayaMetaData == null) {
             return const SizedBox.shrink();
           }
-          return LayoutBuilder(
-            builder: (context, constraints) {
-              // 1. Calculate how your SVG fits inside the available device screen boundaries.
-              // We simulate a BoxFit.contain scaling logic manually.
-              double scaleX = constraints.maxWidth / svgDesignSize.width;
-              double scaleY = constraints.maxHeight / svgDesignSize.height;
-
-              // Because BoxFit.contain uses the smaller scale factor to keep aspect ratio:
-              double activeScale = scaleX < scaleY ? scaleX : scaleY;
-
-              // Calculate the actual size the SVG will occupy on screen
-              double renderedWidth = svgDesignSize.width * activeScale;
-              double renderedHeight = svgDesignSize.height * activeScale;
-
-              // 2. Scale your coordinates using the calculated active scale factor
-              final scaledPoints =
-                  AyaCoordinateParser.parseString(
-                    state.ayaMetaData?.polygon ?? '',
-                  ).map((point) {
-                    return Offset(
-                      point.dx * activeScale,
-                      point.dy * activeScale,
-                    );
-                  }).toList();
-              Log.debug(state.ayaMetaData?.pageFileName ?? 'ss');
-              // 3. Center the layout stack exactly like BoxFit.contain aligns graphics
-              return Center(
-                child: SizedBox(
-                  width: renderedWidth,
-                  height: renderedHeight,
-                  child: Stack(
-                    children: [
-                      // The main static background SVG text page
-                      Positioned.fill(
-                        child: SvgPicture.asset(
-                          context.getThemedMoshafPage(
-                            state.ayaMetaData?.pageFileName ?? '',
+          return Directionality(
+            textDirection: TextDirection.rtl,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: state.lines.map<Widget>((line) {
+                  final words = line.words;
+                  if (words == null || words.isEmpty) {
+                    return const Expanded(child: SizedBox.shrink());
+                  }
+                  return Expanded(
+                    child: FittedBox(
+                      fit: BoxFit.fitWidth, // scale line to full width
+                      child: Text.rich(
+                        TextSpan(
+                          children: [
+                            for (int i = 0; i < words.length; i++)
+                              TextSpan(
+                                text: words[i].text,
+                                style: TextStyle(
+                                  backgroundColor: words[i].aya == 13
+                                      ? Colors.red
+                                      : null,
+                                ),
+                              ),
+                          ],
+                          style: TextStyle(
+                            fontFamily: 'p${state.playbackInfo.ayaMetaData!.pageNumber}',
+                            fontSize: 100, // base size, FittedBox rescales
+                            color: Colors.black,
                           ),
-                          fit: BoxFit.contain,
                         ),
+                        textDirection: TextDirection.rtl,
+                        softWrap: false,
+                        maxLines: 1,
                       ),
-
-                      // The scaled active highlight box
-                      Positioned.fill(
-                        child: _AnimatedAyaHighlight(
-                          targetPoints: scaledPoints,
-                        ),
-                      ),
-
-                      Positioned(
-                        top: 0,
-                        child: Text(
-                          '${state.currentAyaRepeat}/${state.totalAyaRepeats}',
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
           );
         },
       ),

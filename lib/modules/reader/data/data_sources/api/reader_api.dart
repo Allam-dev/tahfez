@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:tahfez/core/data/sources/remote/api/dio_factor.dart';
+import 'package:tahfez/core/services/logs/log.dart';
 import 'package:tahfez/modules/reader/data/data_sources/api/reader_endpoints.dart';
 import 'package:tahfez/modules/reader/domain/models/reader_model.dart';
 
@@ -41,6 +42,7 @@ class ReaderAPI {
         readers.add(reader);
       }
     }
+    Log.info(readers.length.toString());
     return readers;
   }
 }

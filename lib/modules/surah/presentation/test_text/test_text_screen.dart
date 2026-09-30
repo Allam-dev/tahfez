@@ -1,49 +1,76 @@
 import 'package:flutter/material.dart';
+import 'package:tahfez/modules/surah/data/data_sources/db/mushaf_db.dart';
+import 'package:tahfez/modules/surah/domain/enums/line_type_enum.dart';
+import 'package:tahfez/modules/surah/domain/models/surah_model.dart';
 
 class TestTextScreen extends StatelessWidget {
   TestTextScreen({super.key});
 
-  final list = [
-    "إِذَا ٱلشَّمۡسُ كُوِّرَتۡ",
-    "وَإِذَا ٱلنُّجُومُ ٱنكَدَرَتۡ",
-    "وَإِذَا ٱلۡجِبَالُ سُيِّرَتۡ",
-    "وَإِذَا ٱلۡعِشَارُ عُطِّلَتۡ",
-    "وَإِذَا ٱلۡوُحُوشُ حُشِرَتۡ",
-    "وَإِذَا ٱلۡبِحَارُ سُجِّرَتۡ",
-    "وَإِذَا ٱلنُّفُوسُ زُوِّجَتۡ",
-    "وَإِذَا ٱلۡمَوۡءُۥدَةُ سُئِلَتۡ",
-    "بِأَيِّ ذَنۢبࣲ قُتِلَتۡ",
-    "وَإِذَا ٱلصُّحُفُ نُشِرَتۡ",
-    "وَإِذَا ٱلسَّمَآءُ كُشِطَتۡ",
-    "وَإِذَا ٱلۡجَحِيمُ سُعِّرَتۡ",
-    "وَإِذَا ٱلۡجَنَّةُ أُزۡلِفَتۡ",
-    "عَلِمَتۡ نَفۡسࣱ مَّآ أَحۡضَرَتۡ",
-    "فَلَآ أُقۡسِمُ بِٱلۡخُنَّسِ",
-    "ٱلۡجَوَارِ ٱلۡكُنَّسِ",
-    "وَٱلَّيۡلِ إِذَا عَسۡعَسَ",
-    "وَٱلصُّبۡحِ إِذَا تَنَفَّسَ",
-    "إِنَّهُۥ لَقَوۡلُ رَسُولࣲ كَرِيمࣲ",
-    "ذِي قُوَّةٍ عِندَ ذِي ٱلۡعَرۡشِ مَكِينࣲ",
-    "مُّطَاعࣲ ثَمَّ أَمِينࣲ",
-    "وَمَا صَاحِبُكُم بِمَجۡنُونࣲ",
-    "وَلَقَدۡ رَءَاهُ بِٱلۡأُفُقِ ٱلۡمُبِينِ",
-    "وَمَا هُوَ عَلَى ٱلۡغَيۡبِ بِضَنِينࣲ",
-    "وَمَا هُوَ بِقَوۡلِ شَيۡطَٰنࣲ رَّجِيمࣲ",
-    "فَأَيۡنَ تَذۡهَبُونَ",
-    "إِنۡ هُوَ إِلَّا ذِكۡرࣱ لِّلۡعَٰلَمِينَ",
-    "لِمَن شَآءَ مِنكُمۡ أَن يَسۡتَقِيمَ",
-    "وَمَا تَشَآءُونَ إِلَّآ أَن يَشَآءَ ٱللَّهُ رَبُّ ٱلۡعَٰلَمِينَ",
-  ];
+  final int p = 586;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFFAF9F5),
       body: SafeArea(
-        child: Text(
-          list.join('۝'),
+        child: FutureBuilder(
+          future: MushafDb.instance.getPage(p),
+          builder: (context, snapshot) {
+            final list = snapshot.data ?? [];
+            if (list.isEmpty) return const SizedBox.shrink();
 
-          /// textAlign: TextAlign.justify,
-          style: TextStyle(fontFamily: 'hafs', fontSize: 28),
+            return Directionality(
+              textDirection: TextDirection.rtl,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: list.map<Widget>((line) {
+                    final words = line.words;
+                    if (line.type == LineTypeEnum.basmallah) {
+                      return Text(
+                        'بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ',
+                        style: TextStyle(fontFamily: 'hafs'),
+                      );
+                    } else if (line.type == LineTypeEnum.surahName) {
+                      return Text(
+                        SUR.first.name,
+                        style: TextStyle(fontFamily: 'hafs'),
+                      );
+                    }
+                    return Expanded(
+                      child: FittedBox(
+                        fit: BoxFit.fitWidth, // scale line to full width
+                        child: Text.rich(
+                          TextSpan(
+                            children: [
+                              for (int i = 0; i < words!.length; i++)
+                                TextSpan(
+                                  text: words[i].text,
+                                  style: TextStyle(
+                                    backgroundColor: words[i].aya == 13
+                                        ? Colors.red
+                                        : null,
+                                  ),
+                                ),
+                            ],
+                            style: TextStyle(
+                              fontFamily: 'p$p',
+                              fontSize: 100, // base size, FittedBox rescales
+                              color: Colors.black,
+                            ),
+                          ),
+                          textDirection: TextDirection.rtl,
+                          softWrap: false,
+                          maxLines: 1,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );

@@ -10,6 +10,7 @@ import 'package:tahfez/app/localization/localization_constants.dart';
 import 'package:tahfez/core/data/sources/local/hive/hive_helper.dart';
 import 'package:tahfez/core/data/sources/remote/api/dio_factor.dart';
 import 'package:tahfez/core/di/main_di.dart';
+import 'package:tahfez/modules/surah/data/data_sources/db/mushaf_db.dart';
 import 'package:tahfez/modules/surah/data/repos/surah_player_just_audio_impl.dart';
 import 'package:tahfez/modules/surah/data/repos/surah_downloader_impl.dart';
 import 'package:path_provider/path_provider.dart';
@@ -24,7 +25,6 @@ Future<void> _appInit() async {
     ]);
   }
   await QuranAudioResolver.init();
-
 
   await HiveHelper.init();
   final storageDirectory = kIsWeb
@@ -45,6 +45,7 @@ Future<void> _appInit() async {
   await Future.wait<dynamic>([
     ScreenUtil.ensureScreenSize(),
     EasyLocalization.ensureInitialized(),
+    MushafDb.instance.init(),
   ]);
 }
 

@@ -38,6 +38,15 @@ class SurahPlaybackInfo extends Equatable {
       currentSectionRepeat = 0,
       totalSectionRepeats = 0;
 
+  const SurahPlaybackInfo.loading()
+    : playerState = SurahPlayerState.loading,
+      surahNumber = 0,
+      ayaMetaData = null,
+      currentAyaRepeat = 0,
+      totalAyaRepeats = 0,
+      currentSectionRepeat = 0,
+      totalSectionRepeats = 0;
+
   bool get isActive =>
       playerState == SurahPlayerState.play ||
       playerState == SurahPlayerState.pause;
