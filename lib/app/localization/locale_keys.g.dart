@@ -19,8 +19,10 @@ abstract class  LocaleKeys {
   static const error = 'error';
   static const facebook = 'facebook';
   static const forbidden = 'forbidden';
+  static const checkDownloadsScreen = 'checkDownloadsScreen';
   static const fullQuranDownloading = 'fullQuranDownloading';
   static const github = 'github';
+  static const downloadFailed = 'downloadFailed';
   static const id = 'id';
   static const invalidInput = 'invalidInput';
   static const itTookTooLongTryAgain = 'itTookTooLongTryAgain';

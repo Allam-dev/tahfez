@@ -66,7 +66,10 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
     // Configure notifications for download tasks
     FileDownloader().configureNotification(
       running: const TaskNotification('جاري تحميل {displayName}', '{metaData}'),
-      complete: const TaskNotification('اكتمل التحميل {displayName}', '{metaData}'),
+      complete: const TaskNotification(
+        'اكتمل التحميل {displayName}',
+        '{metaData}',
+      ),
       error: const TaskNotification('فشل التحميل {displayName}', '{metaData}'),
       progressBar: true,
     );
@@ -232,7 +235,7 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
       startSurahNumber,
       endSurahNumber,
     );
-    if (toDownload.isEmpty) return;
+    if (toDownload.isEmpty) return ;
 
     // Mark surahs as active immediately to prevent duplicate requests
     for (final surahNumber in toDownload) {
@@ -241,7 +244,7 @@ class SurahDownloaderBackgroundDownloaderImpl implements SurahDownloader {
 
     final tasksToEnqueue = await _prepareBatchTasks(reader, toDownload);
 
-    if (tasksToEnqueue.isEmpty) return;
+    if (tasksToEnqueue.isEmpty) return ;
 
     _batchRemaining[reader.id] =
         (_batchRemaining[reader.id] ?? 0) + tasksToEnqueue.length;

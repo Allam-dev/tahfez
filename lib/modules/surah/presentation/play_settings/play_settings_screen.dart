@@ -13,6 +13,7 @@ import 'package:tahfez/core/extensions/string/validations.dart';
 import 'package:tahfez/modules/reader/presentation/widgets/readers_dropdown.dart';
 import 'package:tahfez/modules/surah/domain/enums/surah_player_state.dart';
 import 'package:tahfez/modules/surah/domain/models/surah_model.dart';
+import 'package:tahfez/modules/surah/domain/params/surah_play_params.dart';
 import 'package:tahfez/modules/surah/presentation/play_settings/cubit/play_settings_screen_cubit.dart';
 
 part 'widgets/start_button.dart';
@@ -21,12 +22,15 @@ part 'widgets/repeat_counters_widget.dart';
 part 'widgets/play_options_switches.dart';
 
 class PlaySettingsScreen extends StatelessWidget {
-  const PlaySettingsScreen({super.key});
+  final SurahPlayParams? playParams;
+
+  const PlaySettingsScreen({super.key, this.playParams});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => PlaySettingsScreenCubit(getIt(), getIt()),
+      create: (context) =>
+          PlaySettingsScreenCubit(getIt(), getIt(), playParams: playParams),
       child: BlocListener<PlaySettingsScreenCubit, PlaySettingsScreenState>(
         listener: (context, state) {
           if (state.status == PlaySettingsScreenStatus.error &&
@@ -59,6 +63,7 @@ class PlaySettingsScreen extends StatelessWidget {
                       builder: (context, state) {
                         return ReadersDropdown(
                           enabled: state.playbackInfo.playerState.isIdel,
+                          initialReader: playParams?.reader,
                           onChanged: (value) =>
                               playSettingsScreenCubit.changeReader(value),
                         );

@@ -8,7 +8,12 @@ part 'readers_dropdown_state.dart';
 
 class ReadersDropdownCubit extends HydratedCubit<ReadersDropdownState> {
   final ReaderRepo _readerRepo;
-  ReadersDropdownCubit(this._readerRepo) : super(ReadersDropdownState());
+  ReadersDropdownCubit(this._readerRepo, ReaderModel? initialReader)
+    : super(ReadersDropdownState()) {
+    if (initialReader != null) {
+      emit(state.copyWith(selectedReader: initialReader));
+    }
+  }
 
   Future<void> getList() async {
     emit(state.copyWith(status: ReadersDropdownStatus.loading));

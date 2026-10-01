@@ -19,7 +19,7 @@ class _RangeSelectionDropdowns extends StatelessWidget {
               children: [
                 // Start Aya
                 SizedBox(
-                  width: 100.w,
+                  width: 110.w,
                   child:
                       BlocBuilder<
                         PlaySettingsScreenCubit,
@@ -101,7 +101,7 @@ class _RangeSelectionDropdowns extends StatelessWidget {
               children: [
                 // End Aya
                 SizedBox(
-                  width: 100.w,
+                  width: 110.w,
                   child:
                       BlocBuilder<
                         PlaySettingsScreenCubit,

@@ -11,14 +11,21 @@ import 'package:tahfez/modules/reader/presentation/widgets/cubit/readers_dropdow
 
 class ReadersDropdown extends StatelessWidget {
   final ValueChanged<ReaderModel>? onChanged;
-    final bool enabled;
+  final ReaderModel? initialReader;
+  final bool enabled;
 
-  const ReadersDropdown({super.key, this.onChanged, this.enabled = true});
+  const ReadersDropdown({
+    super.key,
+    this.onChanged,
+    this.enabled = true,
+    this.initialReader,
+  });
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => ReadersDropdownCubit(getIt())..getList(),
+      create: (context) =>
+          ReadersDropdownCubit(getIt(), initialReader)..getList(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

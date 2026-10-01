@@ -19,14 +19,18 @@ class _DownloadedTab extends StatelessWidget {
                 Icon(
                   Icons.folder_off_outlined,
                   size: 64.r,
-                  color: context.theme.colorScheme.onSurface.withValues(alpha: 0.3),
+                  color: context.theme.colorScheme.onSurface.withValues(
+                    alpha: 0.3,
+                  ),
                 ),
                 16.verticalSpace,
                 Text(
                   context.tr(LocaleKeys.noDownloadedFiles),
                   style: TextStyle(
                     fontSize: 16.sp,
-                    color: context.theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                    color: context.theme.colorScheme.onSurface.withValues(
+                      alpha: 0.6,
+                    ),
                   ),
                 ),
               ],
@@ -47,7 +51,10 @@ class _DownloadedTab extends StatelessWidget {
                 side: BorderSide(color: context.theme.colorScheme.outline),
               ),
               child: ExpansionTile(
-                tilePadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+                tilePadding: EdgeInsets.symmetric(
+                  horizontal: 16.w,
+                  vertical: 4.h,
+                ),
                 shape: const Border(),
                 collapsedShape: const Border(),
                 title: Text(
@@ -62,16 +69,23 @@ class _DownloadedTab extends StatelessWidget {
                   group.reader.rewaya,
                   style: TextStyle(
                     fontSize: 13.sp,
-                    color: context.theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                    color: context.theme.colorScheme.onSurface.withValues(
+                      alpha: 0.7,
+                    ),
                   ),
                 ),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
-                      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 8.w,
+                        vertical: 4.h,
+                      ),
                       decoration: BoxDecoration(
-                        color: context.theme.colorScheme.primary.withValues(alpha: 0.1),
+                        color: context.theme.colorScheme.primary.withValues(
+                          alpha: 0.1,
+                        ),
                         borderRadius: BorderRadius.circular(8.r),
                       ),
                       child: Text(
@@ -103,13 +117,29 @@ class _DownloadedTab extends StatelessWidget {
                     decoration: BoxDecoration(
                       border: Border(
                         top: BorderSide(
-                          color: context.theme.colorScheme.outline.withValues(alpha: 0.5),
+                          color: context.theme.colorScheme.outline.withValues(
+                            alpha: 0.5,
+                          ),
                         ),
                       ),
                     ),
                     child: ListTile(
                       dense: true,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 2.h),
+                      onTap: () => context.pushAndRemoveUntil(
+                        PlaySettingsScreen(
+                          playParams: SurahPlayParams(
+                            startSurahNumber: surahNum,
+                            endSurahNumber: surahNum,
+                            reader: group.reader,
+                            startAya: 1,
+                            endAya: SUR[surahNum - 1].versesCount,
+                          ),
+                        ),
+                      ),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 24.w,
+                        vertical: 2.h,
+                      ),
                       leading: Container(
                         width: 32.r,
                         height: 32.r,
@@ -177,7 +207,9 @@ class _DownloadedTab extends StatelessWidget {
               ),
               onPressed: () {
                 Navigator.pop(dialogContext);
-                context.read<DownloadsCubit>().deleteReaderDownloads(group.reader);
+                context.read<DownloadsCubit>().deleteReaderDownloads(
+                  group.reader,
+                );
               },
               child: Text(context.tr(LocaleKeys.delete)),
             ),

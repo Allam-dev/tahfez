@@ -4,13 +4,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:tahfez/app/localization/locale_keys.g.dart';
 import 'package:tahfez/core/di/main_di.dart';
+import 'package:tahfez/core/extensions/context/navigation.dart';
 import 'package:tahfez/core/extensions/context/showing.dart';
 import 'package:tahfez/core/extensions/context/theme.dart';
 import 'package:tahfez/core/extensions/string/validations.dart';
 import 'package:tahfez/modules/reader/domain/models/reader_model.dart';
 import 'package:tahfez/modules/surah/domain/enums/surah_download_status.dart';
 import 'package:tahfez/modules/surah/domain/models/surah_model.dart';
+import 'package:tahfez/modules/surah/domain/params/surah_play_params.dart';
 import 'package:tahfez/modules/surah/presentation/downloads/cubit/downloads_cubit.dart';
+import 'package:tahfez/modules/surah/presentation/play_settings/play_settings_screen.dart';
 
 part 'widgets/downloaded_tab.dart';
 part 'widgets/downloading_tab.dart';

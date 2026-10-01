@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:tahfez/app/localization/locale_keys.g.dart';
 import 'package:tahfez/core/error/failure.dart';
 import 'package:tahfez/modules/reader/domain/models/reader_model.dart';
 import 'package:tahfez/modules/surah/domain/models/surah_model.dart';
@@ -17,18 +18,21 @@ class PlaySettingsScreenCubit extends HydratedCubit<PlaySettingsScreenState> {
   final SurahDownloader _downloader;
   late StreamSubscription<SurahPlaybackInfo> _playbackSubscription;
 
-  PlaySettingsScreenCubit(this._player, this._downloader)
-    : super(
-        PlaySettingsScreenState(
-          playParams: SurahPlayParams(
-            startSurahNumber: 1,
-            endSurahNumber: 1,
-            reader: ReaderModel.fake(),
-            startAya: 1,
-            endAya: 7,
-          ),
-        ),
-      ) {
+  PlaySettingsScreenCubit(
+    this._player,
+    this._downloader, {
+    SurahPlayParams? playParams,
+  }) : super(
+         PlaySettingsScreenState(
+           playParams: SurahPlayParams(
+             startSurahNumber: 1,
+             endSurahNumber: 1,
+             reader: ReaderModel.fake(),
+             startAya: 1,
+             endAya: 7,
+           ),
+         ),
+       ) {
     _playbackSubscription = _player.status.listen((playbackInfo) {
       emit(
         state.copyWith(
@@ -37,6 +41,16 @@ class PlaySettingsScreenCubit extends HydratedCubit<PlaySettingsScreenState> {
         ),
       );
     });
+    if (playParams != null) {
+      emit(
+        state.copyWith(
+          playParams: playParams,
+          playAudio: true,
+          downloadWhilePlaying: false,
+          downloadingOnly: false,
+        ),
+      );
+    }
   }
 
   void changeReader(ReaderModel reader) {
@@ -198,6 +212,7 @@ class PlaySettingsScreenCubit extends HydratedCubit<PlaySettingsScreenState> {
         state.playParams.startSurahNumber,
         state.playParams.endSurahNumber,
       );
+      emit(state.copyWith(message: LocaleKeys.checkDownloadsScreen));
     } catch (e) {
       emit(
         state.copyWith(

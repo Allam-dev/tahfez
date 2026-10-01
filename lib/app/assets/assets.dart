@@ -7,3 +7,9 @@ class IconsAssets {
   static const String appIcon = 'assets/icons/app_icon.png';
   static const String mp3quran = 'assets/icons/mp3quran.png';
 }
+
+class FontsAssets {
+  FontsAssets._();
+
+  static const String cairo = 'assets/fonts/cairo.ttf';
+}
