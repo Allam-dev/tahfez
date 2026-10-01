@@ -14,18 +14,14 @@ class SurahPlaybackInfo extends Equatable {
   final int surahNumber;
   final AyaMetaDataModel? ayaMetaData;
   final int currentAyaRepeat;
-  final int totalAyaRepeats;
   final int currentSectionRepeat;
-  final int totalSectionRepeats;
 
   const SurahPlaybackInfo({
     required this.playerState,
     required this.surahNumber,
     required this.ayaMetaData,
     required this.currentAyaRepeat,
-    required this.totalAyaRepeats,
     required this.currentSectionRepeat,
-    required this.totalSectionRepeats,
   });
 
   /// Idle state — no playback data.
@@ -34,18 +30,14 @@ class SurahPlaybackInfo extends Equatable {
       surahNumber = 0,
       ayaMetaData = null,
       currentAyaRepeat = 0,
-      totalAyaRepeats = 0,
-      currentSectionRepeat = 0,
-      totalSectionRepeats = 0;
+      currentSectionRepeat = 0;
 
   const SurahPlaybackInfo.loading()
     : playerState = SurahPlayerState.loading,
       surahNumber = 0,
       ayaMetaData = null,
       currentAyaRepeat = 0,
-      totalAyaRepeats = 0,
-      currentSectionRepeat = 0,
-      totalSectionRepeats = 0;
+      currentSectionRepeat = 0;
 
   bool get isActive =>
       playerState == SurahPlayerState.play ||
@@ -57,9 +49,7 @@ class SurahPlaybackInfo extends Equatable {
     surahNumber: surahNumber,
     ayaMetaData: ayaMetaData,
     currentAyaRepeat: currentAyaRepeat,
-    totalAyaRepeats: totalAyaRepeats,
     currentSectionRepeat: currentSectionRepeat,
-    totalSectionRepeats: totalSectionRepeats,
   );
 
   @override
@@ -68,8 +58,6 @@ class SurahPlaybackInfo extends Equatable {
     surahNumber,
     ayaMetaData,
     currentAyaRepeat,
-    totalAyaRepeats,
     currentSectionRepeat,
-    totalSectionRepeats,
   ];
 }

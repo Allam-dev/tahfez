@@ -8,8 +8,7 @@ class SurahAPI {
 
   Future<List<AyaMetaDataModel>> getTiming(int surahId, int readerId) async {
     final response = await _dio.get(
-      SurahEndpoints.getTiming,
-      queryParameters: {'surah': surahId, 'read': readerId},
+      SurahEndpoints.getTiming(readerId: readerId, surahNumber: surahId),
     );
     final List<AyaMetaDataModel> timings = [];
     for (final aya in response.data as List) {

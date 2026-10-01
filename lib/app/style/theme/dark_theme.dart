@@ -25,6 +25,7 @@ ThemeData DARK_THEME = ThemeData(
   brightness: Brightness.dark,
   colorScheme: _scheme,
   scaffoldBackgroundColor: AppColors.night900,
+  fontFamily: 'cairo',
 
   appBarTheme: const AppBarTheme(
     backgroundColor: AppColors.night900,

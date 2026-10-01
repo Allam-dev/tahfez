@@ -21,9 +21,9 @@ class _RepeatCountersWidgetState extends State<_RepeatCountersWidget> {
           width: double.infinity,
           padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
           decoration: BoxDecoration(
-            color: AppColors.sand50,
+            color: context.theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(16.r),
-            border: Border.all(color: AppColors.sand200, width: 1.w),
+            border: Border.all(color: context.theme.colorScheme.outline, width: 1.w),
           ),
           child: Column(
             children: [
@@ -56,13 +56,13 @@ class _RepeatCountersWidgetState extends State<_RepeatCountersWidget> {
                       style: TextStyle(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.w500,
-                        color: AppColors.inkLight,
+                        color: context.theme.colorScheme.onSurface,
                       ),
                     ),
                   ),
                 ],
               ),
-              Divider(color: AppColors.sand200, height: 24.h),
+              Divider(color: context.theme.colorScheme.outline, height: 24.h),
               // Row 2: Repeat Section
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -92,7 +92,7 @@ class _RepeatCountersWidgetState extends State<_RepeatCountersWidget> {
                       style: TextStyle(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.w500,
-                        color: AppColors.inkLight,
+                        color: context.theme.colorScheme.onSurface,
                       ),
                     ),
                   ),
@@ -114,7 +114,7 @@ class _RepeatCountersWidgetState extends State<_RepeatCountersWidget> {
         style: TextStyle(
           fontSize: 16.sp,
           fontWeight: FontWeight.bold,
-          color: AppColors.inkLight,
+          color: context.theme.colorScheme.onSurface,
         ),
       ),
     );
@@ -133,13 +133,15 @@ class _RepeatCountersWidgetState extends State<_RepeatCountersWidget> {
           width: 32.w,
           height: 32.h,
           decoration: BoxDecoration(
-            color: AppColors.sand100,
+            color: context.theme.colorScheme.surfaceContainer,
             borderRadius: BorderRadius.circular(8.r),
-            border: Border.all(color: AppColors.sand200, width: 1.w),
+            border: Border.all(color: context.theme.colorScheme.outline, width: 1.w),
           ),
-          child: Icon(icon, size: 18.sp, color: AppColors.green600),
+          child: Icon(icon, size: 18.sp, color: context.theme.colorScheme.primary),
         ),
       ),
     );
   }
 }
+
+

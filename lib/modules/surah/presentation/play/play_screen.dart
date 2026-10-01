@@ -16,14 +16,15 @@ class PlayScreen extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(),
         drawer: const AppDrawer(),
-        body: BlocBuilder<PlayScreenCubit, PlayScreenState>(
-          builder: (context, state) {
-            if (state is PlayScreenSettingsState) {
-              return const PlaySettingsScreen();
-            }
-            return  MoshafScreen();
-          },
-        ),
+        body:const PlaySettingsScreen(),
+      ///    BlocBuilder<PlayScreenCubit, PlayScreenState>(
+      ///     builder: (context, state) {
+      ///       if (state is PlayScreenSettingsState) {
+      ///         return const PlaySettingsScreen();
+      ///       }
+      ///       return  MoshafScreen();
+      ///     },
+      ///   ),
       ),
     );
   }

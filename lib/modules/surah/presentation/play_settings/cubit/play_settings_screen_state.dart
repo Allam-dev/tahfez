@@ -4,7 +4,6 @@ enum PlaySettingsScreenStatus {
   inital,
   loading,
   error,
-  readerChanged,
   // range
   startSurahChanged,
   endSurahChanged,
@@ -15,6 +14,8 @@ enum PlaySettingsScreenStatus {
   sectionRepetitionChanged,
   // switchs
   switchChanged,
+
+
 }
 
 @immutable
@@ -25,23 +26,29 @@ class PlaySettingsScreenState {
   final bool playAudio;
   final bool downloadWhilePlaying;
   final bool downloadingOnly;
-
+  final SurahPlaybackInfo playbackInfo;
+  final String? message;
   const PlaySettingsScreenState({
     this.status = PlaySettingsScreenStatus.inital,
+    this.playbackInfo = const SurahPlaybackInfo.idle(),
     this.failure,
     required this.playParams,
     this.playAudio = true,
     this.downloadWhilePlaying = true,
     this.downloadingOnly = false,
+    this.message,
   });
 
   PlaySettingsScreenState copyWith({
     PlaySettingsScreenStatus? status,
+    SurahPlaybackInfo? playbackInfo,
     Failure? failure,
     SurahPlayParams? playParams,
     bool? playAudio,
     bool? downloadWhilePlaying,
     bool? downloadingOnly,
+    bool? playerStateChanged,
+    String? message,
   }) {
     return PlaySettingsScreenState(
       status: status ?? this.status,
@@ -50,6 +57,9 @@ class PlaySettingsScreenState {
       playAudio: playAudio ?? this.playAudio,
       downloadWhilePlaying: downloadWhilePlaying ?? this.downloadWhilePlaying,
       downloadingOnly: downloadingOnly ?? this.downloadingOnly,
+      playbackInfo: playbackInfo ?? this.playbackInfo,
+      message: message,
     );
   }
+
 }

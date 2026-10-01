@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:tahfez/app/style/colors/app_colors.dart';
+import 'package:tahfez/core/extensions/context/theme.dart';
 
 class TitleText extends StatelessWidget {
   final int number;
@@ -15,8 +15,9 @@ class TitleText extends StatelessWidget {
       style: TextStyle(
         fontSize: 16.sp,
         fontWeight: FontWeight.bold,
-        color: AppColors.green600,
+        color: context.theme.colorScheme.secondary,
       ),
     );
   }
 }
+

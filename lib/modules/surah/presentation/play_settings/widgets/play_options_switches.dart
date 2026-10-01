@@ -15,9 +15,9 @@ class _PlayOptionsSwitch extends StatelessWidget {
           width: double.infinity,
           padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
           decoration: BoxDecoration(
-            color: AppColors.sand50,
+            color: context.theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(16.r),
-            border: Border.all(color: AppColors.sand200, width: 1.w),
+            border: Border.all(color: context.theme.colorScheme.outline, width: 1.w),
           ),
           child: BlocBuilder<PlaySettingsScreenCubit, PlaySettingsScreenState>(
             buildWhen: (previous, current) =>
@@ -70,9 +70,6 @@ class _SwitchRow extends StatelessWidget {
         Switch.adaptive(
           value: value,
           onChanged: onChanged,
-          activeTrackColor: AppColors.green500,
-          inactiveThumbColor: Colors.white,
-          inactiveTrackColor: AppColors.sand200,
         ),
         Expanded(
           child: Text(
@@ -81,7 +78,7 @@ class _SwitchRow extends StatelessWidget {
             style: TextStyle(
               fontSize: 14.sp,
               fontWeight: FontWeight.w500,
-              color: AppColors.inkLight,
+              color: context.theme.colorScheme.onSurface,
             ),
           ),
         ),
@@ -89,3 +86,5 @@ class _SwitchRow extends StatelessWidget {
     );
   }
 }
+
+

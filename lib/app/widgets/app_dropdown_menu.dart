@@ -23,6 +23,7 @@ class AppDropdownMenu<T> extends StatefulWidget {
   final Widget? trailingIcon;
   final Widget? leadingIcon;
   final TextStyle? textStyle;
+  final TextInputType? keyboardType;
 
   const AppDropdownMenu({
     super.key,
@@ -30,6 +31,7 @@ class AppDropdownMenu<T> extends StatefulWidget {
     required this.dropdownMenuEntries,
     this.onSelected,
     this.menuHeight,
+    this.keyboardType,
     this.expandedInsets,
     this.enableFilter = true,
     this.requestFocusOnTap = true,
@@ -126,6 +128,7 @@ class _AppDropdownMenuState<T> extends State<AppDropdownMenu<T>> {
       controller: _controller,
       focusNode: _focusNode,
       initialSelection: _selectedVal,
+      keyboardType: widget.keyboardType,
       dropdownMenuEntries: widget.dropdownMenuEntries,
       menuHeight: widget.menuHeight,
       expandedInsets: widget.expandedInsets,

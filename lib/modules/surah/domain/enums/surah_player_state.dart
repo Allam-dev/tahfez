@@ -3,4 +3,6 @@ enum SurahPlayerState {
   play,
   pause,
   loading;
+
+  bool get isIdel => this == SurahPlayerState.idel;
 }

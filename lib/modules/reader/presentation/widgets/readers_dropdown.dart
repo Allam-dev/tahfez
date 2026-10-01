@@ -11,8 +11,9 @@ import 'package:tahfez/modules/reader/presentation/widgets/cubit/readers_dropdow
 
 class ReadersDropdown extends StatelessWidget {
   final ValueChanged<ReaderModel>? onChanged;
+    final bool enabled;
 
-  const ReadersDropdown({super.key, this.onChanged});
+  const ReadersDropdown({super.key, this.onChanged, this.enabled = true});
 
   @override
   Widget build(BuildContext context) {
@@ -50,6 +51,7 @@ class ReadersDropdown extends StatelessWidget {
               });
               return AppDropdownMenu<ReaderModel>(
                 menuHeight: 300.h,
+                enabled: enabled,
                 expandedInsets: EdgeInsets.zero,
                 initialSelection: state.selectedReader,
                 enableFilter: true,

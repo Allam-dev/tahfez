@@ -27,11 +27,15 @@ class _RangeSelectionDropdowns extends StatelessWidget {
                       >(
                         buildWhen: (previous, current) =>
                             current.status ==
-                            PlaySettingsScreenStatus.startSurahChanged,
+                                PlaySettingsScreenStatus.startSurahChanged ||
+                            current.playbackInfo.playerState !=
+                                previous.playbackInfo.playerState,
                         builder: (context, state) {
                           return AppDropdownMenu<int>(
+                            enabled: state.playbackInfo.playerState.isIdel,
                             menuHeight: 300.h,
                             enableFilter: true,
+                            keyboardType: TextInputType.number,
                             requestFocusOnTap: true,
                             initialSelection: state.playParams.startAya,
                             label: Text(context.tr(LocaleKeys.ayah)),
@@ -61,9 +65,12 @@ class _RangeSelectionDropdowns extends StatelessWidget {
                         PlaySettingsScreenState
                       >(
                         buildWhen: (previous, current) =>
-                            current.status == PlaySettingsScreenStatus.inital,
+                            current.status == PlaySettingsScreenStatus.inital ||
+                            current.playbackInfo.playerState !=
+                                previous.playbackInfo.playerState,
                         builder: (context, state) {
                           return AppDropdownMenu<int>(
+                            enabled: state.playbackInfo.playerState.isIdel,
                             menuHeight: 300.h,
                             enableFilter: true,
                             requestFocusOnTap: true,
@@ -106,11 +113,16 @@ class _RangeSelectionDropdowns extends StatelessWidget {
                             current.status ==
                                 PlaySettingsScreenStatus.endSurahChanged ||
                             current.status ==
-                                PlaySettingsScreenStatus.startAyaChanged,
+                                PlaySettingsScreenStatus.startAyaChanged ||
+                            current.playbackInfo.playerState !=
+                                previous.playbackInfo.playerState,
                         builder: (context, state) {
                           return AppDropdownMenu<int>(
+                            enabled: state.playbackInfo.playerState.isIdel,
+
                             menuHeight: 300.h,
                             enableFilter: true,
+                            keyboardType: TextInputType.number,
                             requestFocusOnTap: true,
                             initialSelection: state.playParams.endAya,
                             label: Text(context.tr(LocaleKeys.ayah)),
@@ -159,9 +171,13 @@ class _RangeSelectionDropdowns extends StatelessWidget {
                             current.status ==
                                 PlaySettingsScreenStatus.startSurahChanged ||
                             current.status ==
-                                PlaySettingsScreenStatus.startAyaChanged,
+                                PlaySettingsScreenStatus.startAyaChanged ||
+                            current.playbackInfo.playerState !=
+                                previous.playbackInfo.playerState,
                         builder: (context, state) {
                           return AppDropdownMenu<int>(
+                            enabled: state.playbackInfo.playerState.isIdel,
+
                             menuHeight: 300.h,
                             enableFilter: true,
                             requestFocusOnTap: true,

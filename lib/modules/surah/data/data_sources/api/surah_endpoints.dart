@@ -1,3 +1,4 @@
 abstract interface class SurahEndpoints {
-  static const String getTiming = 'ayat_timing';
+  static String getTiming({required int surahNumber, required int readerId}) =>
+      'hafs_timing/${readerId}_$surahNumber.json';
 }

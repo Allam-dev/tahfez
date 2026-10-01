@@ -3,12 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:tahfez/app/localization/locale_keys.g.dart';
-import 'package:tahfez/app/style/colors/app_colors.dart';
 import 'package:tahfez/app/widgets/app_dropdown_menu.dart';
+import 'package:tahfez/app/widgets/drawer/app_drawer.dart';
 import 'package:tahfez/app/widgets/text/title_text.dart';
 import 'package:tahfez/core/di/main_di.dart';
 import 'package:tahfez/core/extensions/context/showing.dart';
+import 'package:tahfez/core/extensions/context/theme.dart';
+import 'package:tahfez/core/extensions/string/validations.dart';
 import 'package:tahfez/modules/reader/presentation/widgets/readers_dropdown.dart';
+import 'package:tahfez/modules/surah/domain/enums/surah_player_state.dart';
 import 'package:tahfez/modules/surah/domain/models/surah_model.dart';
 import 'package:tahfez/modules/surah/presentation/play_settings/cubit/play_settings_screen_cubit.dart';
 
@@ -29,6 +32,8 @@ class PlaySettingsScreen extends StatelessWidget {
           if (state.status == PlaySettingsScreenStatus.error &&
               state.failure != null) {
             context.showErrorSnakeBar(state.failure!);
+          } else if (state.message.hasValue) {
+            context.showSuccessSnackBar(context.tr(state.message!));
           }
         },
         child: Builder(
@@ -36,15 +41,28 @@ class PlaySettingsScreen extends StatelessWidget {
             final playSettingsScreenCubit = context
                 .read<PlaySettingsScreenCubit>();
             return Scaffold(
+              appBar: AppBar(),
+              drawer: const AppDrawer(),
               body: SingleChildScrollView(
                 padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Section 1: Readers and Qiraah Dropdowns
-                    ReadersDropdown(
-                      onChanged: (value) =>
-                          playSettingsScreenCubit.changeReader(value),
+                    BlocBuilder<
+                      PlaySettingsScreenCubit,
+                      PlaySettingsScreenState
+                    >(
+                      buildWhen: (previous, current) =>
+                          current.playbackInfo.playerState !=
+                          previous.playbackInfo.playerState,
+                      builder: (context, state) {
+                        return ReadersDropdown(
+                          enabled: state.playbackInfo.playerState.isIdel,
+                          onChanged: (value) =>
+                              playSettingsScreenCubit.changeReader(value),
+                        );
+                      },
                     ),
                     24.verticalSpace,
 

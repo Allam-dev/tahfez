@@ -25,7 +25,7 @@ ThemeData LIGHT_THEME = ThemeData(
   brightness: Brightness.light,
   colorScheme: _scheme,
   scaffoldBackgroundColor: AppColors.sand50,
-
+  fontFamily: 'cairo',
   appBarTheme: const AppBarTheme(
     backgroundColor: AppColors.sand50,
     foregroundColor: AppColors.inkLight,
