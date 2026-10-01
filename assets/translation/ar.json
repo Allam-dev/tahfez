@@ -57,5 +57,14 @@
   "playAudio": "تشغيل الصوت",
   "downloadWhilePlaying": "تحميل أثناء التشغيل",
   "downloadOnly": "تحميل فقط (بدون تشغيل)",
-  "start": "بدء"
+  "start": "بدء",
+  "currentlyDownloading": "جاري التحميل حاليًا",
+  "downloadedFiles": "الملفات المحملة",
+  "noActiveDownloads": "لا توجد تحميلات نشطة",
+  "noDownloadedFiles": "لا توجد ملفات محملة",
+  "deleteConfirm": "هل تريد حذف هذه السورة؟",
+  "deletedSuccessfully": "تم الحذف بنجاح",
+  "deleteAll": "حذف الكل",
+  "failed": "فشل",
+  "surahs": "سور"
 }

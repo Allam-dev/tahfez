@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
-import 'package:tahfez/app/localization/locale_keys.g.dart';
 import 'package:tahfez/core/error/failure.dart';
 import 'package:tahfez/modules/reader/domain/models/reader_model.dart';
 import 'package:tahfez/modules/surah/domain/models/surah_model.dart';
@@ -34,6 +33,7 @@ class PlaySettingsScreenCubit extends HydratedCubit<PlaySettingsScreenState> {
       emit(
         state.copyWith(
           playbackInfo: playbackInfo,
+          status: PlaySettingsScreenStatus.inital,
         ),
       );
     });
@@ -178,9 +178,9 @@ class PlaySettingsScreenCubit extends HydratedCubit<PlaySettingsScreenState> {
     }
   }
 
-  void _play() {
+  Future<void> _play() async {
     try {
-      _player.start(state.playParams);
+      await _player.start(state.playParams);
     } catch (e) {
       emit(
         state.copyWith(
@@ -191,14 +191,13 @@ class PlaySettingsScreenCubit extends HydratedCubit<PlaySettingsScreenState> {
     }
   }
 
-  void _download() {
+  Future<void> _download() async {
     try {
-      _downloader.downloadRange(
+      await _downloader.downloadRange(
         state.playParams.reader,
         state.playParams.startSurahNumber,
         state.playParams.endSurahNumber,
       );
-      emit(state.copyWith(message: LocaleKeys.downloading));
     } catch (e) {
       emit(
         state.copyWith(

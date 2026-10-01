@@ -57,5 +57,14 @@
   "playAudio": "Play Audio",
   "downloadWhilePlaying": "Download while playing",
   "downloadOnly": "Download only (without playing)",
-  "start": "Start"
+  "start": "Start",
+  "currentlyDownloading": "Currently Downloading",
+  "downloadedFiles": "Downloaded Files",
+  "noActiveDownloads": "No active downloads",
+  "noDownloadedFiles": "No downloaded files",
+  "deleteConfirm": "Delete this surah?",
+  "deletedSuccessfully": "Deleted successfully",
+  "deleteAll": "Delete All",
+  "failed": "Failed",
+  "surahs": "Surahs"
 }

@@ -62,5 +62,14 @@ abstract class  LocaleKeys {
   static const downloadWhilePlaying = 'downloadWhilePlaying';
   static const downloadOnly = 'downloadOnly';
   static const start = 'start';
+  static const currentlyDownloading = 'currentlyDownloading';
+  static const downloadedFiles = 'downloadedFiles';
+  static const noActiveDownloads = 'noActiveDownloads';
+  static const noDownloadedFiles = 'noDownloadedFiles';
+  static const deleteConfirm = 'deleteConfirm';
+  static const deletedSuccessfully = 'deletedSuccessfully';
+  static const deleteAll = 'deleteAll';
+  static const failed = 'failed';
+  static const surahs = 'surahs';
 
 }
