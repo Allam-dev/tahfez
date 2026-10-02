@@ -1,25 +1,7 @@
 part of 'play_settings_screen_cubit.dart';
 
-enum PlaySettingsScreenStatus {
-  inital,
-  loading,
-  error,
-  readerChanged,
-  // range
-  startSurahChanged,
-  endSurahChanged,
-  startAyaChanged,
-  endAyaChanged,
-  // repeatation
-  ayaRepetitionChanged,
-  sectionRepetitionChanged,
-  // switchs
-  switchChanged,
-}
-
 @immutable
 class PlaySettingsScreenState {
-  final PlaySettingsScreenStatus status;
   final Failure? failure;
   final SurahPlayParams playParams;
   final bool playAudio;
@@ -28,7 +10,6 @@ class PlaySettingsScreenState {
   final SurahPlaybackInfo playbackInfo;
   final String? message;
   const PlaySettingsScreenState({
-    this.status = PlaySettingsScreenStatus.inital,
     this.playbackInfo = const SurahPlaybackInfo.idle(),
     this.failure,
     required this.playParams,
@@ -39,7 +20,6 @@ class PlaySettingsScreenState {
   });
 
   PlaySettingsScreenState copyWith({
-    PlaySettingsScreenStatus? status,
     SurahPlaybackInfo? playbackInfo,
     Failure? failure,
     SurahPlayParams? playParams,
@@ -50,8 +30,7 @@ class PlaySettingsScreenState {
     String? message,
   }) {
     return PlaySettingsScreenState(
-      status: status ?? this.status,
-      failure: failure ?? this.failure,
+      failure: failure,
       playParams: playParams ?? this.playParams,
       playAudio: playAudio ?? this.playAudio,
       downloadWhilePlaying: downloadWhilePlaying ?? this.downloadWhilePlaying,
@@ -63,6 +42,6 @@ class PlaySettingsScreenState {
 
   @override
   String toString() {
-    return 'PlaySettingsScreenState(status: $status, failure: $failure, playParams: ${playParams.toString()}, playAudio: $playAudio, downloadWhilePlaying: $downloadWhilePlaying, downloadingOnly: $downloadingOnly, playbackInfo: $playbackInfo, message: $message)';
+    return 'PlaySettingsScreenState(failure: $failure, playParams: ${playParams.toString()}, playAudio: $playAudio, downloadWhilePlaying: $downloadWhilePlaying, downloadingOnly: $downloadingOnly, playbackInfo: $playbackInfo, message: $message)';
   }
 }

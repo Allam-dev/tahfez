@@ -13,15 +13,23 @@ class ReaderModel extends Equatable {
   });
 
   factory ReaderModel.fromApiJson(Map<String, dynamic> json) {
+    String name = json['name'].toString();
+    final String rewaya = json['rewaya'].toString();
+
+    if (rewaya.contains('مجود')) {
+      name = "$name ($rewaya)";
+    }
+
+    if ((json['rewaya'].toString().contains('مجود'))) {}
     return ReaderModel(
       id: json['id'],
-      name: json['name'],
-      rewaya: json['rewaya'],
+      name: name,
+      rewaya: rewaya,
       downloadUrl: json['folder_url'],
     );
   }
 
- factory ReaderModel.fake() => const ReaderModel(
+  factory ReaderModel.fake() => const ReaderModel(
     id: 0,
     name: 'name',
     rewaya: 'rewaya',

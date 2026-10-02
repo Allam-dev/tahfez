@@ -23,7 +23,10 @@ class _RepeatCountersWidgetState extends State<_RepeatCountersWidget> {
           decoration: BoxDecoration(
             color: context.theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(16.r),
-            border: Border.all(color: context.theme.colorScheme.outline, width: 1.w),
+            border: Border.all(
+              color: context.theme.colorScheme.outline,
+              width: 1.w,
+            ),
           ),
           child: Column(
             children: [
@@ -35,14 +38,14 @@ class _RepeatCountersWidgetState extends State<_RepeatCountersWidget> {
                     icon: Icons.remove,
                     onTap: playSettingsScreenCubit.decrementAyaRepetition,
                   ),
-                  BlocBuilder<PlaySettingsScreenCubit, PlaySettingsScreenState>(
-                    buildWhen: (previous, current) =>
-                        current.status ==
-                        PlaySettingsScreenStatus.ayaRepetitionChanged,
-                    builder: (context, state) {
-                      return _counterText(
-                        count: state.playParams.ayaRepeatCount,
-                      );
+                  BlocSelector<
+                    PlaySettingsScreenCubit,
+                    PlaySettingsScreenState,
+                    int
+                  >(
+                    selector: (state) => state.playParams.ayaRepeatCount,
+                    builder: (context, value) {
+                      return _counterText(count: value);
                     },
                   ),
                   _buildCounterBtn(
@@ -71,14 +74,14 @@ class _RepeatCountersWidgetState extends State<_RepeatCountersWidget> {
                     icon: Icons.remove,
                     onTap: playSettingsScreenCubit.decrementSectionRepetition,
                   ),
-                  BlocBuilder<PlaySettingsScreenCubit, PlaySettingsScreenState>(
-                    buildWhen: (previous, current) =>
-                        current.status ==
-                        PlaySettingsScreenStatus.sectionRepetitionChanged,
-                    builder: (context, state) {
-                      return _counterText(
-                        count: state.playParams.sectionRepeatCount,
-                      );
+                  BlocSelector<
+                    PlaySettingsScreenCubit,
+                    PlaySettingsScreenState,
+                    int
+                  >(
+                    selector: (state) => state.playParams.sectionRepeatCount,
+                    builder: (context, value) {
+                      return _counterText(count: value);
                     },
                   ),
                   _buildCounterBtn(
@@ -135,13 +138,18 @@ class _RepeatCountersWidgetState extends State<_RepeatCountersWidget> {
           decoration: BoxDecoration(
             color: context.theme.colorScheme.surfaceContainer,
             borderRadius: BorderRadius.circular(8.r),
-            border: Border.all(color: context.theme.colorScheme.outline, width: 1.w),
+            border: Border.all(
+              color: context.theme.colorScheme.outline,
+              width: 1.w,
+            ),
           ),
-          child: Icon(icon, size: 18.sp, color: context.theme.colorScheme.primary),
+          child: Icon(
+            icon,
+            size: 18.sp,
+            color: context.theme.colorScheme.primary,
+          ),
         ),
       ),
     );
   }
 }
-
-

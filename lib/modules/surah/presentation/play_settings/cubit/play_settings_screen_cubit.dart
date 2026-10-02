@@ -6,7 +6,6 @@ import 'package:tahfez/app/localization/locale_keys.g.dart';
 import 'package:tahfez/core/error/failure.dart';
 import 'package:tahfez/core/services/logs/log.dart';
 import 'package:tahfez/modules/reader/domain/models/reader_model.dart';
-import 'package:tahfez/modules/surah/domain/models/surah_model.dart';
 import 'package:tahfez/modules/surah/domain/models/surah_playback_info.dart';
 import 'package:tahfez/modules/surah/domain/params/surah_play_params.dart';
 import 'package:tahfez/modules/surah/domain/repos/surah_downloader.dart';
@@ -35,71 +34,54 @@ class PlaySettingsScreenCubit extends HydratedCubit<PlaySettingsScreenState> {
          ),
        ) {
     _playbackSubscription = _player.status.listen((playbackInfo) {
-      emit(
-        state.copyWith(
-          playbackInfo: playbackInfo,
-          status: PlaySettingsScreenStatus.inital,
-        ),
-      );
+      emit(state.copyWith(playbackInfo: playbackInfo));
     });
     if (playParams != null) {
-      emit(
-        state.copyWith(
-          playParams: playParams,
-          playAudio: true,
-          downloadWhilePlaying: false,
-          downloadingOnly: false,
-        ),
-      );
+      _initializePlayParams(playParams);
     }
   }
 
+  Future<void> _initializePlayParams(SurahPlayParams playParams) async {
+    await _player.stop();
+    emit(
+      PlaySettingsScreenState(
+        playParams: playParams,
+        downloadWhilePlaying: false,
+      ),
+    );
+  }
+
   void changeReader(ReaderModel reader) {
-    state.playParams.reader = reader;
-    emit(state.copyWith(status: PlaySettingsScreenStatus.readerChanged));
+    emit(state.copyWith(playParams: state.playParams.copyWith(reader: reader)));
   }
 
   void changeStartSurah(int? surahNumber) {
     if (surahNumber == null || !state.playbackInfo.playerState.isIdel) return;
-    state.playParams.startSurahNumber = surahNumber;
-    state.playParams.endSurahNumber = surahNumber;
-    state.playParams.startAya = 1;
-    state.playParams.endAya = SUR[surahNumber - 1].versesCount;
-    emit(state.copyWith(status: PlaySettingsScreenStatus.startSurahChanged));
+
+    emit(
+      state.copyWith(playParams: state.playParams.setStartSurah(surahNumber)),
+    );
   }
 
   void changeStartAya(int? aya) {
     if (aya == null || !state.playbackInfo.playerState.isIdel) return;
-    state.playParams.startAya = aya;
-    if (aya == SUR[state.playParams.startSurahNumber - 1].versesCount) {
-      state.playParams.endSurahNumber = state.playParams.startSurahNumber + 1;
-      state.playParams.endAya = 1;
-    } else {
-      state.playParams.endSurahNumber = state.playParams.startSurahNumber;
-      state.playParams.endAya =
-          SUR[state.playParams.startSurahNumber - 1].versesCount;
-    }
-    emit(state.copyWith(status: PlaySettingsScreenStatus.startAyaChanged));
+    emit(state.copyWith(playParams: state.playParams.setStartAya(aya)));
   }
 
   void changeEndSurah(int? surahNumber) {
     if (surahNumber == null || !state.playbackInfo.playerState.isIdel) return;
-    state.playParams.endSurahNumber = surahNumber;
-    state.playParams.endAya = SUR[surahNumber - 1].versesCount;
-    emit(state.copyWith(status: PlaySettingsScreenStatus.endSurahChanged));
+    emit(state.copyWith(playParams: state.playParams.setEndSurah(surahNumber)));
   }
 
   void changeEndAya(int? aya) {
     if (aya == null || !state.playbackInfo.playerState.isIdel) return;
-    state.playParams.endAya = aya;
-    emit(state.copyWith(status: PlaySettingsScreenStatus.endAyaChanged));
+    emit(state.copyWith(playParams: state.playParams.setEndAya(aya)));
   }
 
-  void playAudio(bool? value) {
+  void switchPlayAudio(bool? value) {
     if (value != null && state.playbackInfo.playerState.isIdel) {
       emit(
         state.copyWith(
-          status: PlaySettingsScreenStatus.switchChanged,
           playAudio: value,
           downloadWhilePlaying: value,
           downloadingOnly: !value,
@@ -108,11 +90,10 @@ class PlaySettingsScreenCubit extends HydratedCubit<PlaySettingsScreenState> {
     }
   }
 
-  void downloadWhilePlaying(bool? value) {
+  void switchDownloadWhilePlaying(bool? value) {
     if (value != null && state.playbackInfo.playerState.isIdel) {
       emit(
         state.copyWith(
-          status: PlaySettingsScreenStatus.switchChanged,
           playAudio: true,
           downloadWhilePlaying: value,
           downloadingOnly: false,
@@ -121,11 +102,10 @@ class PlaySettingsScreenCubit extends HydratedCubit<PlaySettingsScreenState> {
     }
   }
 
-  void downloadOnly(bool? value) {
+  void switchDownloadOnly(bool? value) {
     if (value != null && state.playbackInfo.playerState.isIdel) {
       emit(
         state.copyWith(
-          status: PlaySettingsScreenStatus.switchChanged,
           playAudio: !value,
           downloadWhilePlaying: !value,
           downloadingOnly: value,
@@ -136,40 +116,28 @@ class PlaySettingsScreenCubit extends HydratedCubit<PlaySettingsScreenState> {
 
   void incrementAyaRepetition() {
     if (!state.playbackInfo.playerState.isIdel) return;
-    state.playParams.ayaRepeatCount++;
-    emit(state.copyWith(status: PlaySettingsScreenStatus.ayaRepetitionChanged));
+    emit(state.copyWith(playParams: state.playParams.incrementAyaRepetition()));
   }
 
   void decrementAyaRepetition() {
     if (!state.playbackInfo.playerState.isIdel) return;
-    if (state.playParams.ayaRepeatCount > 1) {
-      state.playParams.ayaRepeatCount--;
-      emit(
-        state.copyWith(status: PlaySettingsScreenStatus.ayaRepetitionChanged),
-      );
-    }
+    emit(state.copyWith(playParams: state.playParams.decrementAyaRepetition()));
   }
 
   void incrementSectionRepetition() {
     if (!state.playbackInfo.playerState.isIdel) return;
 
-    state.playParams.sectionRepeatCount++;
     emit(
-      state.copyWith(status: PlaySettingsScreenStatus.sectionRepetitionChanged),
+      state.copyWith(playParams: state.playParams.incrementSectionRepetition()),
     );
   }
 
   void decrementSectionRepetition() {
     if (!state.playbackInfo.playerState.isIdel) return;
 
-    if (state.playParams.sectionRepeatCount > 1) {
-      state.playParams.sectionRepeatCount--;
-      emit(
-        state.copyWith(
-          status: PlaySettingsScreenStatus.sectionRepetitionChanged,
-        ),
-      );
-    }
+    emit(
+      state.copyWith(playParams: state.playParams.decrementSectionRepetition()),
+    );
   }
 
   void pause() {
@@ -198,12 +166,7 @@ class PlaySettingsScreenCubit extends HydratedCubit<PlaySettingsScreenState> {
     try {
       await _player.start(state.playParams);
     } catch (e) {
-      emit(
-        state.copyWith(
-          status: PlaySettingsScreenStatus.error,
-          failure: Failure.fromException(e),
-        ),
-      );
+      emit(state.copyWith(failure: Failure.fromException(e)));
     }
   }
 
@@ -216,12 +179,7 @@ class PlaySettingsScreenCubit extends HydratedCubit<PlaySettingsScreenState> {
       );
       emit(state.copyWith(message: LocaleKeys.checkDownloadsScreen));
     } catch (e) {
-      emit(
-        state.copyWith(
-          status: PlaySettingsScreenStatus.error,
-          failure: Failure.fromException(e),
-        ),
-      );
+      emit(state.copyWith(failure: Failure.fromException(e)));
     }
   }
 

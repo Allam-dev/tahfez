@@ -5,11 +5,14 @@ class _StartButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<PlaySettingsScreenCubit, PlaySettingsScreenState>(
-      buildWhen: (previous, current) =>
-          current.playbackInfo.playerState != previous.playbackInfo.playerState,
-      builder: (context, state) {
-        if (state.playbackInfo.playerState == SurahPlayerState.play) {
+    return BlocSelector<
+      PlaySettingsScreenCubit,
+      PlaySettingsScreenState,
+      SurahPlayerState
+    >(
+      selector: (state) => state.playbackInfo.playerState,
+      builder: (context, value) {
+        if (value == SurahPlayerState.play) {
           return Row(
             children: [
               Expanded(
@@ -29,7 +32,7 @@ class _StartButton extends StatelessWidget {
               ),
             ],
           );
-        } else if (state.playbackInfo.playerState == SurahPlayerState.pause) {
+        } else if (value == SurahPlayerState.pause) {
           return Row(
             children: [
               Expanded(
@@ -50,7 +53,7 @@ class _StartButton extends StatelessWidget {
               ),
             ],
           );
-        } else if (state.playbackInfo.playerState == SurahPlayerState.loading) {
+        } else if (value == SurahPlayerState.loading) {
           return ElevatedButton(
             onPressed: null,
             child: CircularProgressIndicator.adaptive(),

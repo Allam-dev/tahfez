@@ -33,7 +33,7 @@ class PlaySettingsScreen extends StatelessWidget {
           PlaySettingsScreenCubit(getIt(), getIt(), playParams: playParams),
       child: BlocListener<PlaySettingsScreenCubit, PlaySettingsScreenState>(
         listener: (context, state) {
-          if (state.status == PlaySettingsScreenStatus.error &&
+          if (
               state.failure != null) {
             context.showErrorSnakeBar(state.failure!);
           } else if (state.message.hasValue) {
@@ -53,16 +53,15 @@ class PlaySettingsScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Section 1: Readers and Qiraah Dropdowns
-                    BlocBuilder<
+                    BlocSelector<
                       PlaySettingsScreenCubit,
-                      PlaySettingsScreenState
+                      PlaySettingsScreenState,
+                      bool
                     >(
-                      buildWhen: (previous, current) =>
-                          current.playbackInfo.playerState !=
-                          previous.playbackInfo.playerState,
-                      builder: (context, state) {
+                      selector: (state) => state.playbackInfo.playerState.isIdel,
+                      builder: (context, value) {
                         return ReadersDropdown(
-                          enabled: state.playbackInfo.playerState.isIdel,
+                          enabled: value,
                           initialReader: playParams?.reader,
                           onChanged: (value) =>
                               playSettingsScreenCubit.changeReader(value),

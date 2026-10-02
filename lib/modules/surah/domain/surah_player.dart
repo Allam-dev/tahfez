@@ -4,9 +4,9 @@ import 'package:tahfez/modules/surah/domain/params/surah_play_params.dart';
 abstract class SurahPlayer {
   /// Starts a new playback session from scratch.
   Future<void> start(SurahPlayParams params);
-  void pause();
-  void stop();
-  void resume();
+  Future<void> pause();
+  Future<void> stop();
+  Future<void> resume();
 
   /// Single unified stream: player state + real-time playback info.
   /// Always has a current value (starts with idle).

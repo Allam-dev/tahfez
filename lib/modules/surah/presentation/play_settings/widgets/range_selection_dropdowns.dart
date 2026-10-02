@@ -6,6 +6,9 @@ class _RangeSelectionDropdowns extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final playSettingsScreenCubit = context.read<PlaySettingsScreenCubit>();
+    final enabled = context.select<PlaySettingsScreenCubit, bool>(
+      (cubit) => cubit.state.playbackInfo.playerState.isIdel,
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -21,26 +24,27 @@ class _RangeSelectionDropdowns extends StatelessWidget {
                 SizedBox(
                   width: 110.w,
                   child:
-                      BlocBuilder<
+                      BlocSelector<
                         PlaySettingsScreenCubit,
-                        PlaySettingsScreenState
+                        PlaySettingsScreenState,
+                        int
                       >(
-                        buildWhen: (previous, current) =>
-                            current.status ==
-                                PlaySettingsScreenStatus.startSurahChanged ||
-                            current.playbackInfo.playerState !=
-                                previous.playbackInfo.playerState,
-                        builder: (context, state) {
+                        selector: (state) => state.playParams.startAya,
+                        builder: (context, value) {
                           return AppDropdownMenu<int>(
-                            enabled: state.playbackInfo.playerState.isIdel,
+                            enabled: enabled,
                             menuHeight: 300.h,
                             enableFilter: true,
                             keyboardType: TextInputType.number,
                             requestFocusOnTap: true,
-                            initialSelection: state.playParams.startAya,
+                            initialSelection: value,
                             label: Text(context.tr(LocaleKeys.ayah)),
                             dropdownMenuEntries: List.generate(
-                              SUR[state.playParams.startSurahNumber - 1]
+                              SUR[playSettingsScreenCubit
+                                          .state
+                                          .playParams
+                                          .startSurahNumber -
+                                      1]
                                   .versesCount,
                               (index) {
                                 return DropdownMenuEntry<int>(
@@ -60,22 +64,20 @@ class _RangeSelectionDropdowns extends StatelessWidget {
                 // Start Surah
                 Expanded(
                   child:
-                      BlocBuilder<
+                      BlocSelector<
                         PlaySettingsScreenCubit,
-                        PlaySettingsScreenState
+                        PlaySettingsScreenState,
+                        int
                       >(
-                        buildWhen: (previous, current) =>
-                            current.status == PlaySettingsScreenStatus.inital ||
-                            current.playbackInfo.playerState !=
-                                previous.playbackInfo.playerState,
-                        builder: (context, state) {
+                        selector: (state) => state.playParams.startSurahNumber,
+                        builder: (context, value) {
                           return AppDropdownMenu<int>(
-                            enabled: state.playbackInfo.playerState.isIdel,
+                            enabled: enabled,
                             menuHeight: 300.h,
                             enableFilter: true,
                             requestFocusOnTap: true,
                             expandedInsets: EdgeInsets.zero,
-                            initialSelection: state.playParams.startSurahNumber,
+                            initialSelection: value,
                             label: Text(context.tr(LocaleKeys.fromSurah)),
                             dropdownMenuEntries: SUR
                                 .map(
@@ -103,55 +105,25 @@ class _RangeSelectionDropdowns extends StatelessWidget {
                 SizedBox(
                   width: 110.w,
                   child:
-                      BlocBuilder<
+                      BlocSelector<
                         PlaySettingsScreenCubit,
-                        PlaySettingsScreenState
+                        PlaySettingsScreenState,
+                        int
                       >(
-                        buildWhen: (previous, current) =>
-                            current.status ==
-                                PlaySettingsScreenStatus.startSurahChanged ||
-                            current.status ==
-                                PlaySettingsScreenStatus.endSurahChanged ||
-                            current.status ==
-                                PlaySettingsScreenStatus.startAyaChanged ||
-                            current.playbackInfo.playerState !=
-                                previous.playbackInfo.playerState,
-                        builder: (context, state) {
+                        selector: (state) => state.playParams.endAya,
+                        builder: (context, value) {
                           return AppDropdownMenu<int>(
-                            enabled: state.playbackInfo.playerState.isIdel,
+                            enabled: enabled,
 
                             menuHeight: 300.h,
                             enableFilter: true,
                             keyboardType: TextInputType.number,
                             requestFocusOnTap: true,
-                            initialSelection: state.playParams.endAya,
+                            initialSelection: value,
                             label: Text(context.tr(LocaleKeys.ayah)),
-                            dropdownMenuEntries: state.playParams.sameSurah
-                                ? List.generate(
-                                    SUR[state.playParams.endSurahNumber - 1]
-                                            .versesCount -
-                                        state.playParams.startAya +
-                                        1,
-                                    (index) {
-                                      return DropdownMenuEntry<int>(
-                                        value:
-                                            index + state.playParams.startAya,
-                                        label:
-                                            (index + state.playParams.startAya)
-                                                .toString(),
-                                      );
-                                    },
-                                  )
-                                : List.generate(
-                                    SUR[state.playParams.endSurahNumber - 1]
-                                        .versesCount,
-                                    (index) {
-                                      return DropdownMenuEntry<int>(
-                                        value: index + 1,
-                                        label: (index + 1).toString(),
-                                      );
-                                    },
-                                  ),
+                            dropdownMenuEntries: _getEndAyaOptions(
+                              playSettingsScreenCubit.state,
+                            ),
                             onSelected: (aya) {
                               playSettingsScreenCubit.changeEndAya(aya);
                             },
@@ -163,29 +135,30 @@ class _RangeSelectionDropdowns extends StatelessWidget {
                 // End Surah
                 Expanded(
                   child:
-                      BlocBuilder<
+                      BlocSelector<
                         PlaySettingsScreenCubit,
-                        PlaySettingsScreenState
+                        PlaySettingsScreenState,
+                        int
                       >(
-                        buildWhen: (previous, current) =>
-                            current.status ==
-                                PlaySettingsScreenStatus.startSurahChanged ||
-                            current.status ==
-                                PlaySettingsScreenStatus.startAyaChanged ||
-                            current.playbackInfo.playerState !=
-                                previous.playbackInfo.playerState,
-                        builder: (context, state) {
+                        selector: (state) => state.playParams.endSurahNumber,
+                        builder: (context, value) {
                           return AppDropdownMenu<int>(
-                            enabled: state.playbackInfo.playerState.isIdel,
+                            enabled: enabled,
 
                             menuHeight: 300.h,
                             enableFilter: true,
                             requestFocusOnTap: true,
                             expandedInsets: EdgeInsets.zero,
-                            initialSelection: state.playParams.endSurahNumber,
+                            initialSelection: value,
                             label: Text(context.tr(LocaleKeys.toSurah)),
                             dropdownMenuEntries: SUR
-                                .skip(state.playParams.startSurahNumber - 1)
+                                .skip(
+                                  playSettingsScreenCubit
+                                          .state
+                                          .playParams
+                                          .startSurahNumber -
+                                      1,
+                                )
                                 .map(
                                   (e) => DropdownMenuEntry<int>(
                                     value: e.id,
@@ -208,5 +181,33 @@ class _RangeSelectionDropdowns extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  List<DropdownMenuEntry<int>> _getEndAyaOptions(
+    PlaySettingsScreenState state,
+  ) {
+    if (state.playParams.sameSurah) {
+      return List.generate(
+        SUR[state.playParams.endSurahNumber - 1].versesCount -
+            state.playParams.startAya +
+            1,
+        (index) {
+          return DropdownMenuEntry<int>(
+            value: index + state.playParams.startAya,
+            label: (index + state.playParams.startAya).toString(),
+          );
+        },
+      );
+    } else {
+      return List.generate(
+        SUR[state.playParams.endSurahNumber - 1].versesCount,
+        (index) {
+          return DropdownMenuEntry<int>(
+            value: index + 1,
+            label: (index + 1).toString(),
+          );
+        },
+      );
+    }
   }
 }

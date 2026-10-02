@@ -17,33 +17,59 @@ class _PlayOptionsSwitch extends StatelessWidget {
           decoration: BoxDecoration(
             color: context.theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(16.r),
-            border: Border.all(color: context.theme.colorScheme.outline, width: 1.w),
+            border: Border.all(
+              color: context.theme.colorScheme.outline,
+              width: 1.w,
+            ),
           ),
-          child: BlocBuilder<PlaySettingsScreenCubit, PlaySettingsScreenState>(
-            buildWhen: (previous, current) =>
-                current.status == PlaySettingsScreenStatus.switchChanged,
-            builder: (context, state) {
-              return Column(
-                spacing: 12.h,
-                children: [
-                  _SwitchRow(
+          child: Column(
+            spacing: 12.h,
+            children: [
+              BlocSelector<
+                PlaySettingsScreenCubit,
+                PlaySettingsScreenState,
+                bool
+              >(
+                selector: (state) => state.playAudio,
+
+                builder: (context, value) {
+                  return _SwitchRow(
                     label: context.tr(LocaleKeys.playAudio),
-                    value: state.playAudio,
-                    onChanged: playSettingsScreenCubit.playAudio,
-                  ),
-                  _SwitchRow(
+                    value: value,
+                    onChanged: playSettingsScreenCubit.switchPlayAudio,
+                  );
+                },
+              ),
+              BlocSelector<
+                PlaySettingsScreenCubit,
+                PlaySettingsScreenState,
+                bool
+              >(
+                selector: (state) => state.downloadWhilePlaying,
+                builder: (context, value) {
+                  return _SwitchRow(
                     label: context.tr(LocaleKeys.downloadWhilePlaying),
-                    value: state.downloadWhilePlaying,
-                    onChanged: playSettingsScreenCubit.downloadWhilePlaying,
-                  ),
-                  _SwitchRow(
+                    value: value,
+                    onChanged:
+                        playSettingsScreenCubit.switchDownloadWhilePlaying,
+                  );
+                },
+              ),
+              BlocSelector<
+                PlaySettingsScreenCubit,
+                PlaySettingsScreenState,
+                bool
+              >(
+                selector: (state) => state.downloadingOnly,
+                builder: (context, value) {
+                  return _SwitchRow(
                     label: context.tr(LocaleKeys.downloadOnly),
-                    value: state.downloadingOnly,
-                    onChanged: playSettingsScreenCubit.downloadOnly,
-                  ),
-                ],
-              );
-            },
+                    value: value,
+                    onChanged: playSettingsScreenCubit.switchDownloadOnly,
+                  );
+                },
+              ),
+            ],
           ),
         ),
       ],
@@ -67,10 +93,7 @@ class _SwitchRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Switch.adaptive(
-          value: value,
-          onChanged: onChanged,
-        ),
+        Switch.adaptive(value: value, onChanged: onChanged),
         Expanded(
           child: Text(
             label,
@@ -86,5 +109,3 @@ class _SwitchRow extends StatelessWidget {
     );
   }
 }
-
-
