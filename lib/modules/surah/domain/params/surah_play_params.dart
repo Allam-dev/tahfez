@@ -30,8 +30,6 @@ class SurahPlayParams {
 
   bool get sameSurah => startSurahNumber == endSurahNumber;
 
-  
-
   int get ayaRepeatCount => _ayaRepeatCount;
   int get sectionRepeatCount => _sectionRepeatCount;
 
@@ -42,7 +40,6 @@ class SurahPlayParams {
   set sectionRepeatCount(int count) {
     _sectionRepeatCount = max(count, 1);
   }
-
 
   factory SurahPlayParams.fromJson(Map<String, dynamic> json) {
     return SurahPlayParams(
@@ -59,10 +56,15 @@ class SurahPlayParams {
   Map<String, dynamic> toJson() => {
     'startSurahNumber': startSurahNumber,
     'endSurahNumber': endSurahNumber,
-    'reader':reader.toJson(),
+    'reader': reader.toJson(),
     'startAya': startAya,
     'endAya': endAya,
     'ayaRepeatCount': _ayaRepeatCount,
     'sectionRepeatCount': _sectionRepeatCount,
   };
+
+  @override
+  String toString() {
+    return 'SurahPlayParams(startSurahNumber: $startSurahNumber, endSurahNumber: $endSurahNumber, startAya: $startAya, endAya: $endAya, reader: ${reader.id}, ayaRepeatCount: $ayaRepeatCount, sectionRepeatCount: $sectionRepeatCount)';
+  }
 }

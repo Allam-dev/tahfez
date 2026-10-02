@@ -4,6 +4,7 @@ enum PlaySettingsScreenStatus {
   inital,
   loading,
   error,
+  readerChanged,
   // range
   startSurahChanged,
   endSurahChanged,
@@ -14,8 +15,6 @@ enum PlaySettingsScreenStatus {
   sectionRepetitionChanged,
   // switchs
   switchChanged,
-
-
 }
 
 @immutable
@@ -62,4 +61,8 @@ class PlaySettingsScreenState {
     );
   }
 
+  @override
+  String toString() {
+    return 'PlaySettingsScreenState(status: $status, failure: $failure, playParams: ${playParams.toString()}, playAudio: $playAudio, downloadWhilePlaying: $downloadWhilePlaying, downloadingOnly: $downloadingOnly, playbackInfo: $playbackInfo, message: $message)';
+  }
 }

@@ -6,6 +6,7 @@ import 'package:tahfez/app/localization/locale_keys.g.dart';
 import 'package:tahfez/app/widgets/app_dropdown_menu.dart';
 import 'package:tahfez/app/widgets/text/title_text.dart';
 import 'package:tahfez/core/di/main_di.dart';
+import 'package:tahfez/core/services/logs/log.dart';
 import 'package:tahfez/modules/reader/domain/models/reader_model.dart';
 import 'package:tahfez/modules/reader/presentation/widgets/cubit/readers_dropdown_cubit.dart';
 
@@ -33,9 +34,10 @@ class ReadersDropdown extends StatelessWidget {
           8.verticalSpace,
 
           BlocBuilder<ReadersDropdownCubit, ReadersDropdownState>(
-            buildWhen: (previous, current) =>
-                current.status != ReadersDropdownStatus.readerChanged,
             builder: (context, state) {
+              Log.warning(
+                "${state.status} - ${state.selectedReader?.toJson()}",
+              );
               if (state.status == ReadersDropdownStatus.error) {
                 return _ErrorRetry(
                   message: state.failure!.message,
@@ -54,7 +56,9 @@ class ReadersDropdown extends StatelessWidget {
                 );
               }
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                onChanged?.call(state.selectedReader!);
+                if (enabled) {
+                  onChanged?.call(state.selectedReader!);
+                }
               });
               return AppDropdownMenu<ReaderModel>(
                 menuHeight: 300.h,

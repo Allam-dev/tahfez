@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:tahfez/app/localization/locale_keys.g.dart';
 import 'package:tahfez/core/error/failure.dart';
+import 'package:tahfez/core/services/logs/log.dart';
 import 'package:tahfez/modules/reader/domain/models/reader_model.dart';
 import 'package:tahfez/modules/surah/domain/models/surah_model.dart';
 import 'package:tahfez/modules/surah/domain/models/surah_playback_info.dart';
@@ -55,6 +56,7 @@ class PlaySettingsScreenCubit extends HydratedCubit<PlaySettingsScreenState> {
 
   void changeReader(ReaderModel reader) {
     state.playParams.reader = reader;
+    emit(state.copyWith(status: PlaySettingsScreenStatus.readerChanged));
   }
 
   void changeStartSurah(int? surahNumber) {
@@ -241,6 +243,7 @@ class PlaySettingsScreenCubit extends HydratedCubit<PlaySettingsScreenState> {
 
   @override
   Map<String, dynamic>? toJson(PlaySettingsScreenState state) {
+    Log.info("storing play settings: ${state.playParams.toJson()}");
     return {
       'play_params': state.playParams.toJson(),
       'play_audio': state.playAudio,
