@@ -120,7 +120,10 @@ class PlaySettingsScreenCubit extends HydratedCubit<PlaySettingsScreenState> {
   }
 
   void decrementAyaRepetition() {
-    if (!state.playbackInfo.playerState.isIdel) return;
+    if (!state.playbackInfo.playerState.isIdel ||
+        state.playParams.ayaRepeatCount <= 1) {
+      return;
+    }
     emit(state.copyWith(playParams: state.playParams.decrementAyaRepetition()));
   }
 
@@ -133,7 +136,10 @@ class PlaySettingsScreenCubit extends HydratedCubit<PlaySettingsScreenState> {
   }
 
   void decrementSectionRepetition() {
-    if (!state.playbackInfo.playerState.isIdel) return;
+    if (!state.playbackInfo.playerState.isIdel ||
+        state.playParams.sectionRepeatCount <= 1) {
+      return;
+    }
 
     emit(
       state.copyWith(playParams: state.playParams.decrementSectionRepetition()),

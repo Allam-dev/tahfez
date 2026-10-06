@@ -27,9 +27,12 @@ class _RangeSelectionDropdowns extends StatelessWidget {
                       BlocSelector<
                         PlaySettingsScreenCubit,
                         PlaySettingsScreenState,
-                        int
+                        (int, int)
                       >(
-                        selector: (state) => state.playParams.startAya,
+                        selector: (state) => (
+                          state.playParams.startAya,
+                          state.playParams.startSurahNumber,
+                        ),
                         builder: (context, value) {
                           return AppDropdownMenu<int>(
                             enabled: enabled,
@@ -37,7 +40,7 @@ class _RangeSelectionDropdowns extends StatelessWidget {
                             enableFilter: true,
                             keyboardType: TextInputType.number,
                             requestFocusOnTap: true,
-                            initialSelection: value,
+                            initialSelection: value.$1,
                             label: Text(context.tr(LocaleKeys.ayah)),
                             dropdownMenuEntries: List.generate(
                               SUR[playSettingsScreenCubit
@@ -108,18 +111,21 @@ class _RangeSelectionDropdowns extends StatelessWidget {
                       BlocSelector<
                         PlaySettingsScreenCubit,
                         PlaySettingsScreenState,
-                        int
+                        (int, int, int)
                       >(
-                        selector: (state) => state.playParams.endAya,
+                        selector: (state) => (
+                          state.playParams.endAya,
+                          state.playParams.endSurahNumber,
+                          state.playParams.startAya,
+                        ),
                         builder: (context, value) {
                           return AppDropdownMenu<int>(
                             enabled: enabled,
-
                             menuHeight: 300.h,
                             enableFilter: true,
                             keyboardType: TextInputType.number,
                             requestFocusOnTap: true,
-                            initialSelection: value,
+                            initialSelection: value.$1,
                             label: Text(context.tr(LocaleKeys.ayah)),
                             dropdownMenuEntries: _getEndAyaOptions(
                               playSettingsScreenCubit.state,
@@ -144,7 +150,6 @@ class _RangeSelectionDropdowns extends StatelessWidget {
                         builder: (context, value) {
                           return AppDropdownMenu<int>(
                             enabled: enabled,
-
                             menuHeight: 300.h,
                             enableFilter: true,
                             requestFocusOnTap: true,
@@ -187,6 +192,7 @@ class _RangeSelectionDropdowns extends StatelessWidget {
     PlaySettingsScreenState state,
   ) {
     if (state.playParams.sameSurah) {
+      Log.error('state.playParams.sameSurah: ${state.playParams.sameSurah}');
       return List.generate(
         SUR[state.playParams.endSurahNumber - 1].versesCount -
             state.playParams.startAya +

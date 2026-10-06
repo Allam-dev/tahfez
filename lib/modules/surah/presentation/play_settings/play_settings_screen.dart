@@ -10,6 +10,7 @@ import 'package:tahfez/core/di/main_di.dart';
 import 'package:tahfez/core/extensions/context/showing.dart';
 import 'package:tahfez/core/extensions/context/theme.dart';
 import 'package:tahfez/core/extensions/string/validations.dart';
+import 'package:tahfez/core/services/logs/log.dart';
 import 'package:tahfez/modules/reader/presentation/widgets/readers_dropdown.dart';
 import 'package:tahfez/modules/surah/domain/enums/surah_player_state.dart';
 import 'package:tahfez/modules/surah/domain/models/surah_model.dart';

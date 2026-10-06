@@ -101,6 +101,7 @@ class SurahPlayParams extends Equatable {
   }
 
   SurahPlayParams setStartSurah(int surahNumber) {
+    surahNumber = surahNumber.clamp(1, SUR.length);
     return copyWith(
       startSurahNumber: surahNumber,
       startAya: 1,
@@ -114,8 +115,8 @@ class SurahPlayParams extends Equatable {
     int endSurahNumber = startSurahNumber;
     int endAya = SUR[startSurahNumber - 1].versesCount;
     if (aya == SUR[startSurahNumber - 1].versesCount) {
-      endSurahNumber = startSurahNumber + 1;
-      endAya = 1;
+      endSurahNumber++;
+      endAya = SUR[startSurahNumber].versesCount;
     }
     return copyWith(
       startAya: aya,
@@ -125,6 +126,7 @@ class SurahPlayParams extends Equatable {
   }
 
   SurahPlayParams setEndSurah(int surahNumber) {
+    surahNumber = surahNumber.clamp(startSurahNumber, SUR.length);
     return copyWith(
       endSurahNumber: surahNumber,
       endAya: SUR[surahNumber - 1].versesCount,
@@ -132,7 +134,15 @@ class SurahPlayParams extends Equatable {
   }
 
   SurahPlayParams setEndAya(int aya) {
-    return copyWith(endAya: aya.clamp(1, SUR[endSurahNumber - 1].versesCount));
+    int lowerLimit;
+    if (sameSurah) {
+      lowerLimit = startAya;
+    } else {
+      lowerLimit = 1;
+    }
+    return copyWith(
+      endAya: aya.clamp(lowerLimit, SUR[endSurahNumber - 1].versesCount),
+    );
   }
 
   @override
