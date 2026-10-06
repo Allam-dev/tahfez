@@ -125,37 +125,23 @@ class _DownloadedTab extends StatelessWidget {
                     ),
                     child: ListTile(
                       dense: true,
-                      onTap: () => context.pushAndRemoveUntil(
-                        PlaySettingsScreen(
-                          playParams: SurahPlayParams(
-                            startSurahNumber: surahNum,
-                            endSurahNumber: surahNum,
-                            reader: group.reader,
-                            startAya: 1,
-                            endAya: SUR[surahNum - 1].versesCount,
-                          ),
-                        ),
-                      ),
                       contentPadding: EdgeInsets.symmetric(
                         horizontal: 24.w,
                         vertical: 2.h,
                       ),
-                      leading: Container(
-                        width: 32.r,
-                        height: 32.r,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: context.theme.colorScheme.surfaceContainerHigh,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Text(
-                          '$surahNum',
-                          style: TextStyle(
-                            fontSize: 12.sp,
-                            fontWeight: FontWeight.bold,
-                            color: context.theme.colorScheme.onSurface,
+                      leading: InkWell(
+                        onTap: () => context.pushAndRemoveUntil(
+                          PlaySettingsScreen(
+                            playParams: SurahPlayParams(
+                              startSurahNumber: surahNum,
+                              endSurahNumber: surahNum,
+                              reader: group.reader,
+                              startAya: 1,
+                              endAya: SUR[surahNum - 1].versesCount,
+                            ),
                           ),
                         ),
+                        child: Icon(Icons.play_arrow),
                       ),
                       title: Text(
                         surahName,

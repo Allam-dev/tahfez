@@ -34,24 +34,6 @@ Whether you are revising a Juz', memorizing a new Surah, or practicing Ayah by A
 
 ---
 
-## 📱 Screenshots
-
-<p align="center">
-  <img src="./screen_shots/Screenshot_1787401645.png" width="250" alt="Tahfez Screenshot" />
-  <img src="./screen_shots/Screenshot_1787401664.png" width="250" alt="Tahfez Screenshot" />
-  <img src="./screen_shots/Screenshot_1787401699.png" width="250" alt="Tahfez Screenshot" />
-  <br/><br/>
-  <img src="./screen_shots/Screenshot_1787401702.png" width="250" alt="Tahfez Screenshot" />
-  <img src="./screen_shots/Screenshot_1787401710.png" width="250" alt="Tahfez Screenshot" />
-  <img src="./screen_shots/Screenshot_1787401713.png" width="250" alt="Tahfez Screenshot" />
-  <br/><br/>
-  <img src="./screen_shots/Screenshot_1787401718.png" width="250" alt="Tahfez Screenshot" />
-  <img src="./screen_shots/Screenshot_1787401736.png" width="250" alt="Tahfez Screenshot" />
-  <img src="./screen_shots/Screenshot_1787401745.png" width="250" alt="Tahfez Screenshot" />
-</p>
-
----
-
 ## ✨ Key Features
 
 * 🔁 **Dual-Layer Custom Repetition Engine**: Fine-tune verse-level repetitions and overall Surah iteration loops.
