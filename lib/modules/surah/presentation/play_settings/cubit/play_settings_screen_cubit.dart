@@ -6,6 +6,7 @@ import 'package:tahfez/app/localization/locale_keys.g.dart';
 import 'package:tahfez/core/error/failure.dart';
 import 'package:tahfez/core/services/logs/log.dart';
 import 'package:tahfez/modules/reader/domain/models/reader_model.dart';
+import 'package:tahfez/modules/surah/domain/enums/surah_player_state.dart';
 import 'package:tahfez/modules/surah/domain/models/surah_playback_info.dart';
 import 'package:tahfez/modules/surah/domain/params/surah_play_params.dart';
 import 'package:tahfez/modules/surah/domain/repos/surah_downloader.dart';
@@ -158,34 +159,53 @@ class PlaySettingsScreenCubit extends HydratedCubit<PlaySettingsScreenState> {
     _player.resume();
   }
 
-  void start() {
-    if (state.playAudio) {
-      _play();
-    }
+  Future<void> start() async {
+    _play();
 
-    if (state.downloadWhilePlaying || state.downloadingOnly) {
-      _download();
-    }
+    _download();
   }
 
   Future<void> _play() async {
-    try {
-      await _player.start(state.playParams);
-    } catch (e) {
-      emit(state.copyWith(failure: Failure.fromException(e)));
+    if (state.playAudio) {
+      try {
+        await _player.start(state.playParams);
+      } catch (e) {
+        emit(state.copyWith(failure: Failure.fromException(e)));
+      }
     }
   }
 
   Future<void> _download() async {
-    try {
-      await _downloader.downloadRange(
-        state.playParams.reader,
-        state.playParams.startSurahNumber,
-        state.playParams.endSurahNumber,
-      );
-      emit(state.copyWith(message: LocaleKeys.checkDownloadsScreen));
-    } catch (e) {
-      emit(state.copyWith(failure: Failure.fromException(e)));
+    if (state.downloadWhilePlaying || state.downloadingOnly) {
+      try {
+        if (!state.playAudio) {
+          emit(
+            state.copyWith(
+              message: LocaleKeys.preparingDownloads,
+              playbackInfo: state.playbackInfo.withState(
+                SurahPlayerState.loading,
+              ),
+            ),
+          );
+        }
+
+        await _downloader.downloadRange(
+          state.playParams.reader,
+          state.playParams.startSurahNumber,
+          state.playParams.endSurahNumber,
+        );
+
+        if (!state.playAudio) {
+          emit(
+            state.copyWith(
+              message: LocaleKeys.checkDownloadsScreen,
+              playbackInfo: state.playbackInfo.withState(SurahPlayerState.idel),
+            ),
+          );
+        }
+      } catch (e) {
+        emit(state.copyWith(failure: Failure.fromException(e)));
+      }
     }
   }
 

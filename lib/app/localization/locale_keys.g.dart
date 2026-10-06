@@ -17,6 +17,7 @@ abstract class  LocaleKeys {
   static const downloading = 'downloading';
   static const downloads = 'downloads';
   static const error = 'error';
+  static const preparingDownloads = 'preparingDownloads';
   static const facebook = 'facebook';
   static const forbidden = 'forbidden';
   static const checkDownloadsScreen = 'checkDownloadsScreen';

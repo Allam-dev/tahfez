@@ -26,7 +26,6 @@ class PlaySettingsScreenState {
     bool? playAudio,
     bool? downloadWhilePlaying,
     bool? downloadingOnly,
-    bool? playerStateChanged,
     String? message,
   }) {
     return PlaySettingsScreenState(
